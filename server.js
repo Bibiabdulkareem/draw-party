@@ -399,30 +399,46 @@ io.on("connection", (socket) => {
   socket.on("draw:clear", ({ roomCode }) => {
     io.to(roomCode).emit("draw:clear");
   });
-  socket.on("team:set", ({ code, playerId, team }) => {
-    const room = rooms.get(code);
-    if (!room) return;
-  
-    if (room.hostId !== socket.id) return;
-  
-    const player = room.players.find(p => p.id === playerId);
-    if (!player) return;
-  
-    player.team = Number(team);
-  
-    emitRoom(code);
-  });
-      if (room.hostId === socket.id) {
-        room.hostId = room.players[0].id;
-        room.players[0].isHost = true;
-      if (leavingPlayer) {
-        io.to(roomCode).emit("system:message", {
-          text: `${leavingPlayer.name} طلع من الغرفة`
-        });
-      emitRoomState(roomCode);
-  });
+ socket.on("team:set", ({ code, playerId, team }) => {
+  const room = rooms.get(code);
+  if (!room) return;
+  if (room.hostId !== socket.id) return;
+
+  const player = room.players.find((p) => p.id === playerId);
+  if (!player) return;
+
+  player.teamId = Number(team);
+  emitRoomState(code);
 });
+
+socket.on("disconnect", () => {
+  for (const [roomCode, room] of rooms.entries()) {
+    const leavingPlayer = getPlayerById(room, socket.id);
+
+    room.players = room.players.filter((p) => p.id !== socket.id);
+
+    if (room.players.length === 0) {
+      rooms.delete(roomCode);
+      continue;
+    }
+
+    if (room.hostId === socket.id) {
+      room.hostId = room.players[0].id;
+      room.players[0].isHost = true;
+    }
+
+    if (leavingPlayer) {
+      io.to(roomCode).emit("system:message", {
+        text: ⁠ ${leavingPlayer.name} طلع من الغرفة ⁠
+      });
+    }
+
+    emitRoomState(roomCode);
+  }
+});
+
 const PORT = process.env.PORT || 3001;
+
 server.listen(PORT, () => {
   console.log("Draw Party server running on port " + PORT);
 });
