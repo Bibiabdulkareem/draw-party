@@ -801,24 +801,25 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
     const members = players.filter((p) => p.teamId === team.id);
     const div = document.createElement("div");
     div.className = "team-item";
-    div.innerHTML = `
-      <strong>${team.name}</strong>
-      <div class="muted">النقاط: ${team.score}</div>
-      <div>${members.map((m) => m.name).join(", ") || "لا يوجد لاعبين"}</div>
-    `;
+    div.innerHTML =
+  "<strong>" + team.name + "</strong>" +
+  "<div class='muted'>Points: " + team.score + "</div>" +
+  "<div>" + (members.map((m) => m.name).join(", ") || "لا يوجد لاعبين") + "</div>";
     teamsList.appendChild(div);
   });
 }
 
     function renderScores(teams) {
-      scoreList.innerHTML = "";
-      finalScores.innerHTML = "";
-      teams.forEach((team) => {
-        const html = `<div class="score-item"><strong>${team.name}</strong> — ${team.score}</div>`;
-        scoreList.innerHTML += html;
-        finalScores.innerHTML += html;
-      });
-    }
+  scoreList.innerHTML = "";
+  finalScores.innerHTML = "";
+
+  teams.forEach((team) => {
+    const html =
+      "<div class='score-item'><strong>" + team.name + "</strong> - " + team.score + "</div>";
+    scoreList.innerHTML += html;
+    finalScores.innerHTML += html;
+  });
+}
     function assignTeam(playerId, teamId) {
   if (!currentRoomState) return;
 
