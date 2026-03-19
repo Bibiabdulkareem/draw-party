@@ -417,8 +417,8 @@
           <span class="pill" id="roundTimeText">وقت الجولة: -</span>
         </div>
         <div class="row">
-          <button class="soft" onclick="copyRoomCode()">نسخ الكود</button>
-          <button class="soft" onclick="copyRoomLink()">نسخ الرابط</button>
+          <button onclick="copyRoomCode()">نسخ الكود</button>
+          <button onclick="copyRoomLink()">نسخ الرابط</button>
           <button class="primary" id="startGameBtn" onclick="startGame()">ابدأ اللعبة</button>
         </div>
       </div>
@@ -531,7 +531,7 @@
   </div>
 
   <script>
-    const socket = io("http://localhost:3001");
+    const socket = io("https://draw-party-production.up.railway.app");
 
     const CATEGORY_META = [
       { name: "حيوانات", icon: "🐾", color: "#ffd6d6" },
@@ -588,6 +588,42 @@
     const palette = document.getElementById("palette");
 
     const canvas = document.getElementById("board");
+const ctx = canvas.getContext("2d");
+
+let drawing = false;
+
+canvas.addEventListener("mousedown", (e) => {
+  drawing = true;
+  ctx.beginPath();
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!drawing) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  ctx.lineTo(x, y);
+  ctx.stroke();
+
+  socket.emit("draw:move", {
+    code: state.code,
+    x,
+    y
+  });
+});
+
+canvas.addEventListener("mouseup", () => {
+  drawing = false;
+});
+
+socket.on("draw:move", (data) => {
+  socket.to(data.code).emit("draw:move", data);
+});, ({ x, y }) => {
+  ctx.lineTo(x, y);
+  ctx.stroke();
+});
     const ctx = canvas.getContext("2d");
 
     const wheelCanvas = document.getElementById("wheelCanvas");
@@ -733,14 +769,28 @@
         const div = document.createElement("div");
         div.className = "player-item";
         div.innerHTML = `
-          <strong>${player.name}</strong>
-          <div class="muted">${player.isHost ? "هوست" : "لاعب"}</div>
-          <div class="team-badge">${team ? team.name : "-"}</div>
-          ${currentRoomState && currentRoomState.hostId === mySocketId ? `
-            <div class="row" style="margin-top:8px;">
-              ${teams.map((t) => `<button class="soft" onclick="assignTeam('${player.id}','${t.id}')">${t.name}</button>`).join("")}
-            </div>
-          ` : ""}
+  <strong>${player.name}</strong>
+  <div class="muted">${player.isHost ? "هوست" : "لاعب"}</div>
+  <div class="team-badge">${team ? team.name : "-"}</div>
+
+  ${
+    currentRoomState && currentRoomState.hostId === mySocketId
+      ? `
+      <div class="row" style="margin-top:8px; gap:6px; flex-wrap:wrap;">
+        ${teams.map((t) => `
+          <button
+            class="soft"
+            onclick="assignTeam('${player.id}', ${t.id})"
+            style="${player.teamId === t.id ? 'border:2px solid #1d3557; font-weight:bold;' : ''}"
+          >
+            ${t.name}
+          </button>
+        `).join("")}
+      </div>
+      `
+      : ""
+  }
+`;
         `;
         playersList.appendChild(div);
       });
@@ -770,20 +820,32 @@
         finalScores.innerHTML += html;
       });
     }
-
     function assignTeam(playerId, teamId) {
-      socket.emit("team:assign", { roomCode, playerId, teamId });
-    }
+  if (!currentRoomState) return;
+
+  socket.emit("host:assign-team", {
+    roomCode: currentRoomState.code,
+    playerId,
+    teamId
+  });
+}
 
     function copyRoomCode() {
-      navigator.clipboard.writeText(roomCode);
-      appendChat("تم نسخ كود الغرفة", true);
-    }
+  if (!state.code) return;
 
-    function copyRoomLink() {
-      navigator.clipboard.writeText(roomLinkText.innerText);
-      appendChat("تم نسخ رابط الغرفة", true);
-    }
+  navigator.clipboard.writeText(state.code)
+    .then(() => alert("تم نسخ الكود"))
+    .catch(() => alert("ما صار نسخ"));
+}
+
+function copyRoomLink() {
+  if (!state.code) return;
+
+  const link = `${window.location.origin}/?room=${state.code}`;
+  navigator.clipboard.writeText(link)
+    .then(() => alert("تم نسخ الرابط"))
+    .catch(() => alert("ما صار نسخ"));
+}
 
     function startGame() {
       socket.emit("room:start", { roomCode });
@@ -809,8 +871,8 @@
     });
 
     function spinWheel() {
-      if (spinBtn.disabled) return;
-      spinBtn.disabled = true;
+  socket.emit("wheel:spin", { code: state.code });
+}
 
       const extra = 1440 + Math.floor(Math.random() * 720);
       wheelRotation += extra;
@@ -819,8 +881,9 @@
       socket.emit("wheel:spin", { roomCode });
     }
 
-    socket.on("wheel:result", ({ name, icon }) => {
-      categoryText.innerText = `${icon} ${name}`;
+    socket.on("wheel:result", (category) => {
+  alert("الفئة: " + category);
+});
     });
 
     socket.on("game:roundStarted", ({ roomState, activeTeamName, drawerName, category }) => {
