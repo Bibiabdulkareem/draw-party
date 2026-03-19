@@ -767,30 +767,23 @@ roomLinkText.innerText = window.location.origin + window.location.pathname + "?r
         const team = teams.find((t) => t.id === player.teamId);
         const div = document.createElement("div");
         div.className = "player-item";
-        div.innerHTML = `
-  <strong>${player.name}</strong>
-  <div class="muted">${player.isHost ? "هوست" : "لاعب"}</div>
-  <div class="team-badge">${team ? team.name : "-"}</div>
-
-  ${
+div.innerHTML =
+  "<strong>" + player.name + "</strong>" +
+  "<div class='muted'>" + (player.isHost ? "هوست" : "لاعب") + "</div>" +
+  "<div class='team-badge'>" + (team ? team.name : "-") + "</div>" +
+  (
     currentRoomState && currentRoomState.hostId === mySocketId
-      ? `
-      <div class="row" style="margin-top:8px; gap:6px; flex-wrap:wrap;">
-        ${teams.map((t) => `
-          <button
-            class="soft"
-            onclick="assignTeam('${player.id}', ${t.id})"
-            style="${player.teamId === t.id ? 'border:2px solid #1d3557; font-weight:bold;' : ''}"
-          >
-            ${t.name}
-          </button>
-        `).join("")}
-      </div>
-      `
+      ? "<div class='row' style='margin-top:8px; gap:6px; flex-wrap:wrap;'>" +
+          teams.map((t) =>
+            "<button class='soft' onclick=\"assignTeam('" + player.id + "', '" + t.id + "')\" style=\"" +
+            (player.teamId === t.id ? "border:2px solid #1d3557; font-weight:bold;" : "") +
+            "\">" +
+            t.name +
+            "</button>"
+          ).join("") +
+        "</div>"
       : ""
-  }
-`;
-        `;
+  );
         playersList.appendChild(div);
       });
     }
