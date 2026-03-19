@@ -428,7 +428,7 @@ socket.on("disconnect", () => {
     }
 if (leavingPlayer) {
   io.to(roomCode).emit("system:message", {
-    text: ⁠ ${leavingPlayer.name} طلع من الغرفة ⁠
+   text: ⁠ ${leavingPlayer.name} طلع من الغرفة ⁠⁠
   });
 }
     emitRoomState(roomCode);
