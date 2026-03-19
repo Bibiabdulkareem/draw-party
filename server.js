@@ -415,19 +415,14 @@ io.on("connection", (socket) => {
       if (room.hostId === socket.id) {
         room.hostId = room.players[0].id;
         room.players[0].isHost = true;
-      }
-
       if (leavingPlayer) {
         io.to(roomCode).emit("system:message", {
           text: `${leavingPlayer.name} طلع من الغرفة`
         });
-      }
-
       emitRoomState(roomCode);
   });
 });
 const PORT = process.env.PORT || 3001;
-
 server.listen(PORT, () => {
   console.log("Draw Party server running on port " + PORT);
 });
