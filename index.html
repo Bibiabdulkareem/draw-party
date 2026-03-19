@@ -730,8 +730,8 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
 
     socket.on("room:created", ({ roomCode: code }) => {
       roomCode = code;
-      roomCodeText.innerText = `الغرفة: ${roomCode}`;
-      roomLinkText.innerText = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+roomCodeText.innerText = "كود الغرفة: " + roomCode;
+roomLinkText.innerText = window.location.origin + window.location.pathname + "?room=" + roomCode;
       showScreen(lobbyScreen);
     });
 
@@ -739,9 +739,9 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
       currentRoomState = state;
       roomCode = state.code;
 
-      roomCodeText.innerText = `الغرفة: ${state.code}`;
-      roundTimeText.innerText = `وقت الجولة: ${state.roundSeconds} ثانية`;
-      roomLinkText.innerText = `${window.location.origin}${window.location.pathname}?room=${state.code}`;
+     roomCodeText.innerText = "كود الغرفة: " + state.code;
+roundTimeText.innerText = "الوقت: " + state.roundSeconds;
+roomLinkText.innerText = window.location.origin + window.location.pathname + "?room=" + state.code;
 
       renderPlayers(state.players, state.teams);
       renderTeams(state.teams, state.players);
@@ -753,7 +753,7 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
 
       if (state.status === "playing") {
         showScreen(gameScreen);
-        roundText.innerText = `${state.currentRound} / ${state.totalRounds}`;
+       roundText.innerText = state.currentRound + " / " + state.totalRounds;
         const activeTeam = state.teams.find((t) => t.id === state.activeTeamId);
         activeTeamText.innerText = activeTeam ? activeTeam.name : "-";
         categoryText.innerText = state.activeCategory || "-";
@@ -841,7 +841,7 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
 function copyRoomLink() {
   if (!state.code) return;
 
-  const link = `${window.location.origin}/?room=${state.code}`;
+  const link = window.location.origin + "/?room=" + state.code;
   navigator.clipboard.writeText(link)
     .then(() => alert("تم نسخ الرابط"))
     .catch(() => alert("ما صار نسخ"));
@@ -854,7 +854,7 @@ function copyRoomLink() {
     socket.on("game:prepareRound", ({ roundNumber, roomState, activeTeamName, drawerName }) => {
       currentRoomState = roomState;
       currentDrawerId = roomState.activeDrawerId;
-      roundText.innerText = `${roundNumber} / 15`;
+      roundText.innerText = roundNumber + " / 15";
       activeTeamText.innerText = activeTeamName || "-";
       categoryText.innerText = "-";
       wordText.innerText = "الكلمة: -";
@@ -865,7 +865,7 @@ function copyRoomLink() {
         statusText.innerText = `أنتِ الرسامة الآن — لفي العجلة`;
         spinBtn.disabled = false;
       } else {
-        statusText.innerText = `${drawerName} يلف العجلة للفريق ${activeTeamName}`;
+      statusText.innerText = drawerName + " يرسم لـ " + activeTeamName;
         spinBtn.disabled = true;
       }
     });
@@ -876,7 +876,7 @@ function copyRoomLink() {
 
       const extra = 1440 + Math.floor(Math.random() * 720);
       wheelRotation += extra;
-      wheelCanvas.style.transform = `rotate(${wheelRotation}deg)`;
+      wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
 
       socket.emit("wheel:spin", { roomCode });
     }
@@ -890,19 +890,19 @@ function copyRoomLink() {
       currentRoomState = roomState;
       currentDrawerId = roomState.activeDrawerId;
       categoryText.innerText = category;
-      roundText.innerText = `${roomState.currentRound} / ${roomState.totalRounds}`;
+      roundText.innerText = roomState.currentRound + " / " + roomState.totalRounds;
 
       if (mySocketId === currentDrawerId) {
         statusText.innerText = "أنتِ ترسمين الآن";
       } else {
-        statusText.innerText = `${drawerName} يرسم للفريق ${activeTeamName}`;
+        statusText.innerText = drawerName + " يرسم لفريق " + activeTeamName;
       }
 
       startLocalTimer(roomState.roundEndsAt);
     });
 
     socket.on("game:wordForDrawer", ({ category, word }) => {
-      wordText.innerText = `الفئة: ${category} | الكلمة: ${word}`;
+      wordText.innerText = "الكلمة: " + word;
     });
 
     function appendChat(text, type = false, correct = false) {
@@ -916,11 +916,11 @@ function copyRoomLink() {
     }
 
     socket.on("chat:message", ({ playerName, text }) => {
-      appendChat(`${playerName}: ${text}`);
+     appendChat(playerName + ": " + text);
     });
 
     socket.on("chat:correct", ({ playerName, answer, guessingTeam }) => {
-      appendChat(`✅ ${playerName} جاوب صح: ${answer} (${guessingTeam})`, false, true);
+      appendChat(playerName + " " + answer + " (" + guessingTeam + ")", false, true);
     });
 
     socket.on("system:message", ({ text }) => {
@@ -967,7 +967,7 @@ function copyRoomLink() {
 
     socket.on("game:finished", ({ winner, teams }) => {
       clearInterval(roundTimer);
-      winnerText.innerText = winner ? `الفائز: ${winner.name}` : "الفائز: -";
+      winnerText.innerText = winner ? "الفائز: " + winner.name : "الفائز: -";
       renderScores(teams);
       showScreen(resultsScreen);
     });
