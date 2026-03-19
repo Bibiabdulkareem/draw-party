@@ -412,7 +412,6 @@ io.on("connection", (socket) => {
   
     emitRoom(code);
   });
-        continue;
       }
 
       if (room.hostId === socket.id) {
