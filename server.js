@@ -7,7 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
+app.get("/", (req, res) => {
+  res.send("Draw Party server is running");
+});
+
+app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
