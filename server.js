@@ -412,8 +412,6 @@ io.on("connection", (socket) => {
   
     emitRoom(code);
   });
-      }
-
       if (room.hostId === socket.id) {
         room.hostId = room.players[0].id;
         room.players[0].isHost = true;
