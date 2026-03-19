@@ -412,17 +412,6 @@ io.on("connection", (socket) => {
   
     emitRoom(code);
   });
-  socket.on("host:assign-team", ({ roomCode, playerId, teamId }) => {
-    const room = rooms.get(roomCode);
-    if (!room) return;
-    if (room.hostId !== socket.id) return;
-  
-    const player = room.players.find((p) => p.id === playerId);
-    if (!player) return;
-  
-    player.teamId = Number(teamId);
-    emitRoomState(roomCode);
-  });
         continue;
       }
 
