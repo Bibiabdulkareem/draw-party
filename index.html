@@ -795,20 +795,20 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
       });
     }
 
-    function renderTeams(teams, players) {
-      teamsList.innerHTML = "";
-      teams.forEach((team) => {
-        const members = players.filter((p) => p.teamId === team.id);
-        const div = document.createElement("div");
-        div.className = "team-item";
-      div.innerHTML = `
-  <strong>${team.name}</strong>
-  <div class="muted">النقاط: ${team.score}</div>
-  <div>${members.map((m) => m.name).join(", ") || "لا يوجد لاعبين"}</div>
-  `;
-        teamsList.appendChild(div);
-      });
-    }
+  function renderTeams(teams, players) {
+  teamsList.innerHTML = "";
+  teams.forEach((team) => {
+    const members = players.filter((p) => p.teamId === team.id);
+    const div = document.createElement("div");
+    div.className = "team-item";
+    div.innerHTML = `
+      <strong>${team.name}</strong>
+      <div class="muted">النقاط: ${team.score}</div>
+      <div>${members.map((m) => m.name).join(", ") || "لا يوجد لاعبين"}</div>
+    `;
+    teamsList.appendChild(div);
+  });
+}
 
     function renderScores(teams) {
       scoreList.innerHTML = "";
