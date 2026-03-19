@@ -1077,9 +1077,18 @@ function copyRoomLink() {
 
     const params = new URLSearchParams(window.location.search);
     const roomFromUrl = params.get("room");
-    if (roomFromUrl) {
-      document.getElementById("joinCode").value = roomFromUrl.toUpperCase();
-    }
+   if (roomFromUrl) {
+  const code = roomFromUrl.toUpperCase();
+  document.getElementById("joinCode").value = code;
+
+  const name = prompt("اكتب اسمك");
+  if (name) {
+    socket.emit("join:room", {
+      code: code,
+      name: name
+    });
+  }
+}
   </script>
 </body>
 </html>
