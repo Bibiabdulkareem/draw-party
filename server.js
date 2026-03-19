@@ -426,13 +426,11 @@ socket.on("disconnect", () => {
       room.hostId = room.players[0].id;
       room.players[0].isHost = true;
     }
-
-    if (leavingPlayer) {
-      io.to(roomCode).emit("system:message", {
-        text: ⁠ ${leavingPlayer.name} طلع من الغرفة ⁠
-      });
-    }
-
+if (leavingPlayer) {
+  io.to(roomCode).emit("system:message", {
+    text: ⁠ ${leavingPlayer.name} طلع من الغرفة ⁠
+  });
+}
     emitRoomState(roomCode);
   }
 });
