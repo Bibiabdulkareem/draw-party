@@ -424,7 +424,6 @@ io.on("connection", (socket) => {
       }
 
       emitRoomState(roomCode);
-    }
   });
 });
 const PORT = process.env.PORT || 3001;
