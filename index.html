@@ -864,15 +864,11 @@ function copyRoomLink() {
     });
 
     function spinWheel() {
-  socket.emit("wheel:spin", { code: state.code });
+  const extra = 1440 + Math.floor(Math.random() * 720);
+  wheelRotation += extra;
+  wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
+  socket.emit("wheel:spin", { roomCode });
 }
-
-      const extra = 1440 + Math.floor(Math.random() * 720);
-      wheelRotation += extra;
-      wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
-
-      socket.emit("wheel:spin", { roomCode });
-    }
 
     socket.on("wheel:result", (category) => {
   alert("الفئة: " + category);
