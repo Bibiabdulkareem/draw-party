@@ -605,25 +605,26 @@ canvas.addEventListener("mousemove", (e) => {
   ctx.lineTo(x, y);
   ctx.stroke();
 
-  socket.emit("draw:move", {
-    code: state.code,
-    x,
-    y
-  });
+socket.emit("draw:move", {
+  roomCode,
+  x,
+  y,
+  color: currentColor,
+  mode: brushMode
 });
 
 canvas.addEventListener("mouseup", () => {
   drawing = false;
 });
 
-socket.on("draw:move", (data) => {
-  socket.to(data.code).emit("draw:move", data);
-});, ({ x, y }) => {
+socket.on("draw:move", ({ x, y, color, mode }) => {
+  ctx.lineWidth = mode === "erase" ? 18 : 3;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = mode === "erase" ? "#ffffff" : color;
   ctx.lineTo(x, y);
   ctx.stroke();
 });
-    const ctx = canvas.getContext("2d");
-
+    
     const wheelCanvas = document.getElementById("wheelCanvas");
     const wheelCtx = wheelCanvas.getContext("2d");
 
