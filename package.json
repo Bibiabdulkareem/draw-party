@@ -1,7 +1,7 @@
 {
-  "name": "draw-party",
+  "name": "ayam-altaybeen",
   "version": "1.0.0",
-  "description": "Arabic Draw Party game",
+  "description": "لعبة ايام الطيبين",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
