@@ -4,386 +4,302 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Draw Party</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
   <style>
-    :root {
-      --bg: #f8f9fd;
-      --card: #ffffff;
-      --line: #e8ebf4;
-      --text: #1f2a44;
-      --muted: #6f7891;
-      --navy: #1f3a63;
-      --navy-2: #294d7a;
-      --blue: #5b7cfa;
-      --blue-soft: #edf2ff;
-      --green: #16a34a;
-      --red: #ef4444;
-      --yellow: #f59e0b;
-      --shadow: 0 14px 35px rgba(31, 58, 99, 0.08);
-    }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, #eef3ff 0%, transparent 28%),
-        radial-gradient(circle at top right, #fdf2f8 0%, transparent 22%),
-        var(--bg);
-      color: var(--text);
+      background: #f4f6fb;
+      color: #122033;
     }
-
-    .wrap {
-      max-width: 1220px;
-      margin: 0 auto;
-      padding: 24px;
+    .container {
+      width: min(1100px, 94%);
+      margin: 24px auto 80px;
     }
-
+    .hero, .card {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 56px;
+      text-align: center;
+    }
+    .hero p {
+      margin: 0;
+      text-align: center;
+      line-height: 1.8;
+      color: #44546a;
+    }
+    .badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .badge {
+      background: #f6f8fc;
+      border: 1px solid #dbe4f0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+    h2, h3 {
+      margin: 0 0 14px;
+    }
+    .muted {
+      color: #66758b;
+    }
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    input, select, button {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #d9e2ef;
+      padding: 14px 16px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+    }
+    .primary {
+      background: #102c67;
+      color: #fff;
+    }
+    .secondary {
+      background: #eef3fb;
+      color: #102c67;
+    }
+    .danger {
+      background: #d64545;
+      color: #fff;
+    }
+    .soft {
+      background: #f5f7fb;
+      color: #16335f;
+      border: 1px solid #dbe4f0;
+    }
     .screen { display: none; }
     .screen.active { display: block; }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .hero h1 {
-      margin: 0 0 10px;
-      font-size: 44px;
-      color: var(--navy);
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.8;
-      font-size: 18px;
-    }
-
-    .pill-row {
+    .topbar {
       display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+      margin-bottom: 14px;
     }
-
-    .pill {
-      padding: 9px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .grid {
-      display: grid;
-      gap: 18px;
-    }
-
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1.15fr 1fr; }
-
     .row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       align-items: center;
     }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
+    .pill {
+      background: #eff5ff;
+      color: #16335f;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
     }
-
-    .section-title {
-      margin: 0 0 14px;
-      font-size: 24px;
-      color: var(--navy);
+    .room-link {
+      word-break: break-all;
+      background: #f8fbff;
+      border: 1px dashed #bfd0ea;
+      padding: 12px;
+      border-radius: 14px;
+      color: #34507b;
     }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    input, select, button {
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      padding: 12px 14px;
-      font-size: 15px;
-      font-family: inherit;
-    }
-
-    input, select {
-      width: 100%;
-      background: #fff;
-      color: var(--text);
-    }
-
-    button {
-      cursor: pointer;
-      background: #fff;
-      transition: .18s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-    }
-
-    button.primary {
-      background: linear-gradient(135deg, var(--navy), var(--navy-2));
-      color: white;
-      border-color: transparent;
-    }
-
-    button.soft {
-      background: var(--blue-soft);
-      color: var(--navy);
-      border-color: #dbe5ff;
-    }
-
-    button.green {
-      background: #e9fbea;
-      color: var(--green);
-      border-color: #bbf7d0;
-    }
-
-    button.red {
-      background: #fff0f0;
-      color: var(--red);
-      border-color: #fecaca;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .stat {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 7px;
-    }
-
-    .stat-value {
-      color: var(--navy);
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .players-list, .teams-list, .score-list {
+    .players-list, .teams-list, .score-list, .final-scores {
       display: grid;
       gap: 10px;
     }
-
-    .player-item, .team-item, .score-item, .chat-item {
-      border: 1px solid var(--line);
+    .player-item, .team-item, .score-item {
+      background: #f8fbff;
+      border: 1px solid #dce7f7;
       border-radius: 16px;
-      padding: 12px;
-      background: #fff;
+      padding: 14px;
     }
-
     .team-badge {
       display: inline-block;
       margin-top: 8px;
-      padding: 6px 10px;
+      background: #eaf3ff;
+      color: #113766;
       border-radius: 999px;
-      background: var(--blue-soft);
-      color: var(--navy);
-      font-size: 12px;
-      border: 1px solid #dce6ff;
+      padding: 6px 10px;
+      font-size: 13px;
     }
 
-    .wheel-area {
-      text-align: center;
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr;
+      gap: 18px;
+    }
+    @media (max-width: 900px) {
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 { font-size: 42px; }
     }
 
-    .wheel-wrap {
-      position: relative;
-      width: 290px;
-      height: 290px;
-      margin: 0 auto 16px;
-    }
-
-    .pointer {
-      position: absolute;
-      top: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-top: 0;
-      border-bottom: 26px solid var(--red);
-      z-index: 3;
-    }
-
-    #wheelCanvas {
-      width: 290px;
-      height: 290px;
-      border-radius: 50%;
-      box-shadow: var(--shadow);
+    .board-wrap {
       background: #fff;
-      transition: transform 2.2s cubic-bezier(.17,.67,.2,1);
-    }
-
-    .canvas-box {
-      background: #fff;
-      border: 1px solid var(--line);
       border-radius: 22px;
-      padding: 12px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      padding: 18px;
     }
-
     canvas#board {
       width: 100%;
-      display: block;
-      background: white;
-      border: 2px solid #d6dceb;
+      height: 420px;
+      background: #fff;
+      border: 2px solid #dce7f7;
       border-radius: 18px;
-      cursor: crosshair;
+      touch-action: none;
+      display: block;
     }
-
-    .toolbar {
+    .tools {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       margin-top: 12px;
-      align-items: center;
     }
-
-    .color-palette {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .color-swatch {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 0 0 1px #d8dfea;
+    .swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 2px solid transparent;
       cursor: pointer;
     }
+    .swatch.active {
+      border-color: #102c67;
+      transform: scale(1.06);
+    }
 
-    .color-swatch.active {
-      transform: scale(1.12);
-      box-shadow: 0 0 0 2px var(--navy);
+    .side-card {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .wheel-box {
+      text-align: center;
+    }
+    #wheelCanvas {
+      width: 270px;
+      height: 270px;
+      max-width: 100%;
+      border-radius: 50%;
+      transition: transform 4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .pointer {
+      font-size: 32px;
+      margin-bottom: 6px;
     }
 
     .chat-box {
-      height: 290px;
+      height: 260px;
       overflow-y: auto;
-      border: 1px solid var(--line);
-      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid #dce7f7;
+      border-radius: 16px;
       padding: 12px;
-      background: #fbfcff;
+      display: grid;
+      gap: 10px;
     }
-
+    .chat-item {
+      background: #fff;
+      border: 1px solid #e3ebf7;
+      border-radius: 12px;
+      padding: 10px;
+      line-height: 1.6;
+    }
     .chat-item.system {
-      background: #fff7ed;
-      border-color: #fed7aa;
-      color: #9a3412;
+      background: #edf6ff;
+      color: #214a7a;
     }
-
     .chat-item.correct {
-      background: #ecfdf5;
-      border-color: #bbf7d0;
+      background: #edfff1;
       color: #166534;
+      border-color: #b7e4c0;
     }
 
-    .room-link {
-      word-break: break-all;
-      background: #f8fafc;
-      border: 1px dashed #d7dfef;
-      border-radius: 14px;
-      padding: 12px;
-      color: var(--muted);
-      font-size: 13px;
+    .results-title {
+      font-size: 34px;
+      margin-bottom: 8px;
+      text-align: center;
     }
-
-    .notice {
-      background: linear-gradient(135deg, #eef4ff, #fff7fb);
-      border: 1px solid #dce6ff;
-      border-radius: 22px;
-      padding: 18px;
+    .winner {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+      color: #0f2d68;
+      font-weight: bold;
     }
-
-    @media (max-width: 960px) {
-      .hero, .grid-2, .grid-3, .stats {
-        grid-template-columns: 1fr;
-      }
+    .center {
+      text-align: center;
+    }
+    .error {
+      color: #b42318;
+      margin-top: 8px;
+      min-height: 24px;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-
-    <!-- HOME -->
+  <div class="container">
     <section id="homeScreen" class="screen active">
       <div class="hero">
-        <div class="card">
-          <h1>🎨 Draw Party</h1>
-          <p>
-            لعبة رسم جماعية خفيفة وممتعة بين فريقين أو أكثر، فيها جولات، عجلة فئات، كلمات عربية،
-            شات للإجابات، نقاط، ولوحة رسم مباشرة.
-          </p>
-          <div class="pill-row">
-            <span class="pill">15 جولة</span>
-            <span class="pill">فرق متعددة</span>
-            <span class="pill">فئات عربية</span>
-            <span class="pill">عجلة فئات</span>
-            <span class="pill">ألوان وممحاة</span>
-          </div>
+        <h1>Draw Party 🎨</h1>
+        <p>لعبة رسم جماعية خفيفة وممتعة بين فريقين أو أكثر، فيها جولات، عجلة فئات، كلمات عربية، شات للإجابات، نقاط ولوحة رسم مباشرة.</p>
+        <div class="badges">
+          <div class="badge">15 جولة</div>
+          <div class="badge">فرق متعددة</div>
+          <div class="badge">فئات عربية</div>
+          <div class="badge">عجلة فئات</div>
+          <div class="badge">ألوان ومساحة</div>
         </div>
+      </div>
 
-        <div class="notice">
-          <h3 style="margin-top:0; color: var(--navy);">جاهزة للتجربة</h3>
-          <p class="muted">
-            تقدرين تسوين غرفة، تدخلين من صفحة ثانية، توزعين اللاعبين على الفرق، وتبدين اللعب فورًا.
-          </p>
-        </div>
+      <div class="card center">
+        <h2>جاهزة للتجربة</h2>
+        <p class="muted">تقدرين تسوين غرفة، تدخلين من صفحة ثانية، توزعين اللاعبين على الفرق، وتبدين اللعب فورًا.</p>
       </div>
 
       <div class="grid grid-2">
         <div class="card">
-          <h2 class="section-title">إنشاء غرفة</h2>
+          <h2>إنشاء غرفة</h2>
           <div class="grid">
             <input id="createName" placeholder="اسمك" />
             <select id="maxPlayers">
               <option value="4">4 لاعبين</option>
-              <option value="6">6 لاعبين</option>
+              <option value="6" selected>6 لاعبين</option>
               <option value="8">8 لاعبين</option>
               <option value="10">10 لاعبين</option>
+              <option value="12">12 لاعبين</option>
             </select>
             <select id="teamCount">
-              <option value="2">فريقين</option>
+              <option value="2" selected>فريقين</option>
               <option value="3">3 فرق</option>
               <option value="4">4 فرق</option>
             </select>
@@ -394,160 +310,143 @@
               <option value="120">120 ثانية</option>
             </select>
             <button class="primary" onclick="createRoom()">إنشاء الغرفة</button>
+            <div id="homeError" class="error"></div>
           </div>
         </div>
 
         <div class="card">
-          <h2 class="section-title">دخول غرفة</h2>
+          <h2>دخول غرفة</h2>
           <div class="grid">
             <input id="joinName" placeholder="اسمك" />
             <input id="joinCode" placeholder="كود الغرفة" />
             <button class="primary" onclick="joinRoom()">دخول</button>
-            <div id="homeError" class="muted"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- LOBBY -->
     <section id="lobbyScreen" class="screen">
+      <div class="card">
+        <div class="topbar">
+          <div class="row">
+            <span class="pill" id="roomCodeText">الغرفة: -</span>
+            <span class="pill" id="roundTimeText">وقت الجولة: -</span>
+          </div>
+          <div class="row">
+            <button class="secondary" onclick="copyRoomCode()">نسخ الكود</button>
+            <button class="secondary" onclick="copyRoomLink()">نسخ الرابط</button>
+            <button class="primary" id="startGameBtn" onclick="startGame()">ابدأ اللعبة</button>
+          </div>
+        </div>
+
+        <div class="room-link" id="roomLinkText"></div>
+
+        <div class="grid grid-3" style="margin-top: 18px;">
+          <div class="card" style="margin-bottom: 0;">
+            <h3>اللاعبون</h3>
+            <div id="playersList" class="players-list"></div>
+          </div>
+
+          <div class="card" style="margin-bottom: 0;">
+            <h3>الفرق</h3>
+            <div id="teamsList" class="teams-list"></div>
+          </div>
+
+          <div class="card" style="margin-bottom: 0;">
+            <h3>معلومات</h3>
+            <p class="muted">الهوست يقدر يوزع اللاعبين على الفرق قبل البداية.</p>
+            <p class="muted">بعد البداية، الرسام يشوف الكلمة فقط، والباقي يخمنون بالشات.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen">
       <div class="topbar">
         <div class="row">
-          <span class="pill" id="roomCodeText">الغرفة: -</span>
-          <span class="pill" id="roundTimeText">وقت الجولة: -</span>
+          <span class="pill" id="roundText">-</span>
+          <span class="pill" id="activeTeamText">-</span>
+          <span class="pill" id="categoryText">-</span>
+          <span class="pill" id="timerText">-</span>
         </div>
         <div class="row">
-          <button onclick="copyRoomCode()">نسخ الكود</button>
-          <button onclick="copyRoomLink()">نسخ الرابط</button>
-          <button class="primary" id="startGameBtn" onclick="startGame()">ابدأ اللعبة</button>
+          <span class="pill" id="statusText">-</span>
         </div>
       </div>
 
-      <div class="room-link" id="roomLinkText"></div>
+      <div class="game-layout">
+        <div class="board-wrap">
+          <canvas id="board" width="1000" height="700"></canvas>
 
-      <div class="grid grid-3" style="margin-top:18px;">
-        <div class="card">
-          <h3 class="section-title">اللاعبون</h3>
-          <div id="playersList" class="players-list"></div>
+          <div class="tools">
+            <div id="palette" class="row"></div>
+            <button class="soft" onclick="setBrushMode('draw')">رسم</button>
+            <button class="soft" onclick="setBrushMode('erase')">ممحاة</button>
+            <button class="danger" onclick="clearBoard()">مسح اللوحة</button>
+          </div>
         </div>
 
-        <div class="card">
-          <h3 class="section-title">الفرق</h3>
-          <div id="teamsList" class="teams-list"></div>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title">معلومات الغرفة</h3>
-          <p class="muted">الهوست يقدر يوزع اللاعبين على الفرق قبل البداية.</p>
-          <p class="muted">الرسام هو الوحيد اللي يشوف الكلمة.</p>
-          <p class="muted">بعد كل جولة الفريق التالي ياخذ الدور.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- GAME -->
-    <section id="gameScreen" class="screen">
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-label">الجولة</div>
-          <div class="stat-value" id="roundText">1 / 15</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">الفريق الحالي</div>
-          <div class="stat-value" id="activeTeamText">-</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">الفئة</div>
-          <div class="stat-value" id="categoryText">-</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">الوقت</div>
-          <div class="stat-value" id="timerText">60</div>
-        </div>
-      </div>
-
-      <div class="grid grid-3">
-        <div class="card">
-          <h3 class="section-title">حالة الجولة</h3>
-          <p id="statusText">بانتظار البداية...</p>
-          <p id="wordText">الكلمة: -</p>
-
-          <div class="wheel-area" id="wheelArea">
-            <div class="wheel-wrap">
-              <div class="pointer"></div>
-              <canvas id="wheelCanvas" width="290" height="290"></canvas>
+        <div>
+          <div class="side-card wheel-box">
+            <div class="pointer">▼</div>
+            <canvas id="wheelCanvas" width="300" height="300"></canvas>
+            <div style="margin-top: 12px;">
+              <button class="primary" id="spinBtn" onclick="spinWheel()">لف العجلة</button>
             </div>
-            <button class="primary" id="spinBtn" onclick="spinWheel()">لف العجلة</button>
           </div>
 
-          <div style="margin-top:16px;">
-            <h3 class="section-title">النقاط</h3>
+          <div class="side-card">
+            <h3>الكلمة</h3>
+            <div id="wordText" class="pill" style="display:block; text-align:center;">الكلمة: -</div>
+          </div>
+
+          <div class="side-card">
+            <h3>الشات</h3>
+            <div id="chatBox" class="chat-box"></div>
+            <div class="row" style="margin-top: 12px;">
+              <input id="chatInput" placeholder="اكتب تخمينك..." />
+              <button class="primary" onclick="sendChat()">إرسال</button>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>النقاط الحالية</h3>
             <div id="scoreList" class="score-list"></div>
           </div>
         </div>
-
-        <div class="card">
-          <h3 class="section-title">لوحة الرسم</h3>
-          <div class="canvas-box">
-            <canvas id="board" width="760" height="460"></canvas>
-          </div>
-
-          <div class="toolbar">
-            <div class="color-palette" id="palette"></div>
-            <button class="soft" onclick="setBrushMode('draw')">✏️ رسم</button>
-            <button class="soft" onclick="setBrushMode('erase')">🧽 ممحاة</button>
-            <button class="red" onclick="clearBoard()">مسح اللوحة</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title">الإجابات</h3>
-          <div id="chatBox" class="chat-box"></div>
-          <div class="row" style="margin-top:10px;">
-            <input id="chatInput" placeholder="اكتب الإجابة..." style="flex:1;" />
-            <button class="primary" onclick="sendChat()">إرسال</button>
-          </div>
-
-          <div class="row" style="margin-top:12px;">
-            <button class="green" onclick="manualGuess(true)">صح</button>
-            <button class="red" onclick="manualGuess(false)">خطأ</button>
-          </div>
-        </div>
       </div>
     </section>
 
-    <!-- RESULTS -->
     <section id="resultsScreen" class="screen">
       <div class="card">
-        <h2 class="section-title">انتهت اللعبة</h2>
-        <p id="winnerText">الفائز: -</p>
-        <div id="finalScores" class="score-list"></div>
-        <div class="row" style="margin-top:14px;">
+        <div class="results-title">انتهت اللعبة 🎉</div>
+        <div id="winnerText" class="winner">الفائز: -</div>
+        <div id="finalScores" class="final-scores"></div>
+        <div class="row" style="margin-top: 18px;">
           <button class="primary" onclick="goHome()">العودة للرئيسية</button>
         </div>
       </div>
     </section>
-
   </div>
 
   <script>
-    const socket = io("https://draw-party-production.up.railway.app");
+    const SERVER_URL = "https://draw-party-production.up.railway.app";
+    const socket = io(SERVER_URL, {
+      transports: ["websocket", "polling"]
+    });
 
     const CATEGORY_META = [
       { name: "حيوانات", icon: "🐾", color: "#ffd6d6" },
-      { name: "مهن", icon: "🧑‍🍳", color: "#dbeafe" },
+      { name: "مهن", icon: "🧑‍🏭", color: "#dbeafe" },
       { name: "أكل", icon: "🍔", color: "#fef3c7" },
       { name: "أماكن", icon: "📍", color: "#e9d5ff" },
       { name: "أشياء", icon: "🪑", color: "#d1fae5" },
       { name: "رياضة", icon: "⚽", color: "#fde68a" },
       { name: "وسائل نقل", icon: "🚗", color: "#fecdd3" },
-      { name: "كرتون", icon: "🎭", color: "#bfdbfe" }
+      { name: "كرتون", icon: "🦸", color: "#bfdbfe" }
     ];
 
-    const COLORS = [
-      "#111111", "#ef4444", "#2563eb", "#16a34a",
-      "#f59e0b", "#9333ea", "#0f766e", "#92400e"
-    ];
+    const COLORS = ["#111111", "#ef4444", "#2563eb", "#16a34a", "#f59e0b", "#9333ea", "#0f766e", "#92400e"];
 
     let playerName = "";
     let roomCode = "";
@@ -557,6 +456,7 @@
     let currentColor = COLORS[0];
     let brushMode = "draw";
     let drawing = false;
+    let lastPoint = null;
     let roundTimer = null;
     let wheelRotation = 0;
 
@@ -586,47 +486,36 @@
     const winnerText = document.getElementById("winnerText");
     const spinBtn = document.getElementById("spinBtn");
     const palette = document.getElementById("palette");
+    const startGameBtn = document.getElementById("startGameBtn");
 
     const canvas = document.getElementById("board");
-const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
-canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  ctx.beginPath();
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (!drawing) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  ctx.lineTo(x, y);
-  ctx.stroke();
-
-socket.emit("draw:move", {
-  roomCode,
-  x,
-  y,
-  color: currentColor,
-  mode: brushMode
-});
-
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-});
-
-socket.on("draw:move", ({ x, y, color, mode }) => {
-  ctx.lineWidth = mode === "erase" ? 18 : 3;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = mode === "erase" ? "#ffffff" : color;
-  ctx.lineTo(x, y);
-  ctx.stroke();
-});
-    
     const wheelCanvas = document.getElementById("wheelCanvas");
     const wheelCtx = wheelCanvas.getContext("2d");
+
+    function showScreen(screen) {
+      [homeScreen, lobbyScreen, gameScreen, resultsScreen].forEach((item) => {
+        item.classList.remove("active");
+      });
+      screen.classList.add("active");
+    }
+
+    function initPalette() {
+      palette.innerHTML = "";
+      COLORS.forEach((color, index) => {
+        const button = document.createElement("button");
+        button.className = "swatch" + (index === 0 ? " active" : "");
+        button.style.background = color;
+        button.onclick = () => {
+          currentColor = color;
+          brushMode = "draw";
+          document.querySelectorAll(".swatch").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+        };
+        palette.appendChild(button);
+      });
+    }
 
     function drawWheel() {
       const cx = wheelCanvas.width / 2;
@@ -636,8 +525,8 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
 
       wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
 
-      CATEGORY_META.forEach((item, i) => {
-        const start = i * anglePer - Math.PI / 2;
+      CATEGORY_META.forEach((item, index) => {
+        const start = index * anglePer - Math.PI / 2;
         const end = start + anglePer;
 
         wheelCtx.beginPath();
@@ -656,9 +545,9 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
         wheelCtx.textAlign = "center";
         wheelCtx.fillStyle = "#1f2a44";
         wheelCtx.font = "bold 18px Arial";
-        wheelCtx.fillText(item.icon, radius - 45, 0);
+        wheelCtx.fillText(item.icon, radius - 42, 0);
         wheelCtx.font = "14px Arial";
-        wheelCtx.fillText(item.name, radius - 78, 0);
+        wheelCtx.fillText(item.name, radius - 82, 0);
         wheelCtx.restore();
       });
 
@@ -667,34 +556,6 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
       wheelCtx.fillStyle = "#1f3a63";
       wheelCtx.fill();
     }
-
-    drawWheel();
-
-    function initPalette() {
-      palette.innerHTML = "";
-      COLORS.forEach((color, idx) => {
-        const div = document.createElement("div");
-        div.className = "color-swatch" + (idx === 0 ? " active" : "");
-        div.style.background = color;
-        div.onclick = () => {
-          currentColor = color;
-          brushMode = "draw";
-          document.querySelectorAll(".color-swatch").forEach(el => el.classList.remove("active"));
-          div.classList.add("active");
-        };
-        palette.appendChild(div);
-      });
-    }
-    initPalette();
-
-    function showScreen(screen) {
-      [homeScreen, lobbyScreen, gameScreen, resultsScreen].forEach((el) => el.classList.remove("active"));
-      screen.classList.add("active");
-    }
-
-    socket.on("connect", () => {
-      mySocketId = socket.id;
-    });
 
     function createRoom() {
       homeError.innerText = "";
@@ -724,14 +585,19 @@ socket.on("draw:move", ({ x, y, color, mode }) => {
       });
     }
 
+    socket.on("connect", () => {
+      mySocketId = socket.id;
+    });
+
     socket.on("room:error", ({ message }) => {
       homeError.innerText = message;
+      appendChat(message, true);
     });
 
     socket.on("room:created", ({ roomCode: code }) => {
       roomCode = code;
-roomCodeText.innerText = "كود الغرفة: " + roomCode;
-roomLinkText.innerText = window.location.origin + window.location.pathname + "?room=" + roomCode;
+      roomCodeText.innerText = "الغرفة: " + roomCode;
+      roomLinkText.innerText = window.location.origin + "?room=" + roomCode;
       showScreen(lobbyScreen);
     });
 
@@ -739,13 +605,15 @@ roomLinkText.innerText = window.location.origin + window.location.pathname + "?r
       currentRoomState = state;
       roomCode = state.code;
 
-     roomCodeText.innerText = "كود الغرفة: " + state.code;
-roundTimeText.innerText = "الوقت: " + state.roundSeconds;
-roomLinkText.innerText = window.location.origin + window.location.pathname + "?room=" + state.code;
+      roomCodeText.innerText = "الغرفة: " + state.code;
+      roundTimeText.innerText = "وقت الجولة: " + state.roundSeconds + " ثانية";
+      roomLinkText.innerText = window.location.origin + "?room=" + state.code;
 
       renderPlayers(state.players, state.teams);
       renderTeams(state.teams, state.players);
       renderScores(state.teams);
+
+      startGameBtn.style.display = state.hostId === mySocketId && state.status === "lobby" ? "block" : "none";
 
       if (state.status === "lobby") {
         showScreen(lobbyScreen);
@@ -753,144 +621,132 @@ roomLinkText.innerText = window.location.origin + window.location.pathname + "?r
 
       if (state.status === "playing") {
         showScreen(gameScreen);
-       roundText.innerText = state.currentRound + " / " + state.totalRounds;
-        const activeTeam = state.teams.find((t) => t.id === state.activeTeamId);
+        roundText.innerText = state.currentRound + " / " + state.totalRounds;
+        const activeTeam = state.teams.find((item) => item.id === state.activeTeamId);
         activeTeamText.innerText = activeTeam ? activeTeam.name : "-";
         categoryText.innerText = state.activeCategory || "-";
         startLocalTimer(state.roundEndsAt);
+      }
+
+      if (state.status === "finished") {
+        showScreen(resultsScreen);
       }
     });
 
     function renderPlayers(players, teams) {
       playersList.innerHTML = "";
+
       players.forEach((player) => {
-        const team = teams.find((t) => t.id === player.teamId);
+        const team = teams.find((item) => item.id === player.teamId);
         const div = document.createElement("div");
         div.className = "player-item";
-div.innerHTML =
-  "<strong>" + player.name + "</strong>" +
-  "<div class='muted'>" + (player.isHost ? "هوست" : "لاعب") + "</div>" +
-  "<div class='team-badge'>" + (team ? team.name : "-") + "</div>" +
-  (
-    currentRoomState && currentRoomState.hostId === mySocketId
-      ? "<div class='row' style='margin-top:8px; gap:6px; flex-wrap:wrap;'>" +
-          teams.map((t) =>
-            "<button class='soft' onclick=\"assignTeam('" + player.id + "', '" + t.id + "')\" style=\"" +
-            (player.teamId === t.id ? "border:2px solid #1d3557; font-weight:bold;" : "") +
-            "\">" +
-            t.name +
-            "</button>"
-          ).join("") +
-        "</div>"
-      : ""
-  );
+
+        let html = "";
+        html += "<strong>" + player.name + "</strong>";
+        html += "<div class='muted'>" + (player.isHost ? "هوست" : "لاعب") + "</div>";
+        html += "<div class='team-badge'>" + (team ? team.name : "-") + "</div>";
+
+        if (currentRoomState && currentRoomState.hostId === mySocketId) {
+          html += "<div class='row' style='margin-top:8px; gap:6px; flex-wrap:wrap;'>";
+          teams.forEach((teamItem) => {
+            const activeStyle = player.teamId === teamItem.id ? "border:2px solid #1d3557; font-weight:bold;" : "";
+            html += "<button class='soft' onclick=\"assignTeam('" + player.id + "','" + teamItem.id + "')\" style=\"" + activeStyle + "\">" + teamItem.name + "</button>";
+          });
+          html += "</div>";
+        }
+
+        div.innerHTML = html;
         playersList.appendChild(div);
       });
     }
 
-  function renderTeams(teams, players) {
-  teamsList.innerHTML = "";
-  teams.forEach((team) => {
-    const members = players.filter((p) => p.teamId === team.id);
-    const div = document.createElement("div");
-    div.className = "team-item";
-    div.innerHTML =
-  "<strong>" + team.name + "</strong>" +
-  "<div class='muted'>Points: " + team.score + "</div>" +
-  "<div>" + (members.map((m) => m.name).join(", ") || "لا يوجد لاعبين") + "</div>";
-    teamsList.appendChild(div);
-  });
-}
+    function renderTeams(teams, players) {
+      teamsList.innerHTML = "";
+      teams.forEach((team) => {
+        const members = players.filter((player) => player.teamId === team.id);
+        const div = document.createElement("div");
+        div.className = "team-item";
+        div.innerHTML =
+          "<strong>" + team.name + "</strong>" +
+          "<div class='muted'>النقاط: " + team.score + "</div>" +
+          "<div>" + (members.map((item) => item.name).join("، ") || "لا يوجد لاعبين") + "</div>";
+        teamsList.appendChild(div);
+      });
+    }
 
     function renderScores(teams) {
-  scoreList.innerHTML = "";
-  finalScores.innerHTML = "";
+      scoreList.innerHTML = "";
+      finalScores.innerHTML = "";
 
-  teams.forEach((team) => {
-    const html =
-      "<div class='score-item'><strong>" + team.name + "</strong> - " + team.score + "</div>";
-    scoreList.innerHTML += html;
-    finalScores.innerHTML += html;
-  });
-}
+      teams.forEach((team) => {
+        const html =
+          "<div class='score-item'><strong>" + team.name + "</strong> - " + team.score + " نقطة</div>";
+        scoreList.innerHTML += html;
+        finalScores.innerHTML += html;
+      });
+    }
+
     function assignTeam(playerId, teamId) {
-  if (!currentRoomState) return;
-
-  socket.emit("host:assign-team", {
-    roomCode: currentRoomState.code,
-    playerId,
-    teamId
-  });
-}
+      if (!currentRoomState) return;
+      socket.emit("host:assign-team", {
+        roomCode: currentRoomState.code,
+        playerId,
+        teamId
+      });
+    }
 
     function copyRoomCode() {
-  if (!state.code) return;
+      if (!currentRoomState) return;
+      navigator.clipboard.writeText(currentRoomState.code)
+        .then(() => alert("تم نسخ الكود"))
+        .catch(() => alert("ما صار نسخ"));
+    }
 
-  navigator.clipboard.writeText(state.code)
-    .then(() => alert("تم نسخ الكود"))
-    .catch(() => alert("ما صار نسخ"));
-}
-
-function copyRoomLink() {
-  if (!state.code) return;
-
-  const link = window.location.origin + "/?room=" + state.code;
-  navigator.clipboard.writeText(link)
-    .then(() => alert("تم نسخ الرابط"))
-    .catch(() => alert("ما صار نسخ"));
-}
+    function copyRoomLink() {
+      if (!currentRoomState) return;
+      const link = window.location.origin + "?room=" + currentRoomState.code;
+      navigator.clipboard.writeText(link)
+        .then(() => alert("تم نسخ الرابط"))
+        .catch(() => alert("ما صار نسخ"));
+    }
 
     function startGame() {
       socket.emit("room:start", { roomCode });
     }
 
-    socket.on("game:prepareRound", ({ roundNumber, roomState, activeTeamName, drawerName }) => {
-      currentRoomState = roomState;
+    socket.on("game:roundStarted", ({ roomState, activeTeamName, drawerName, category }) => {
       currentDrawerId = roomState.activeDrawerId;
-      roundText.innerText = roundNumber + " / 15";
+      roundText.innerText = roomState.currentRound + " / " + roomState.totalRounds;
       activeTeamText.innerText = activeTeamName || "-";
-      categoryText.innerText = "-";
+      categoryText.innerText = category || "-";
       wordText.innerText = "الكلمة: -";
       clearLocalBoard();
       showScreen(gameScreen);
 
       if (mySocketId === currentDrawerId) {
-        statusText.innerText = `أنتِ الرسامة الآن — لفي العجلة`;
+        statusText.innerText = "أنت الرسامة الآن - لفي العجلة";
         spinBtn.disabled = false;
       } else {
-      statusText.innerText = drawerName + " يرسم لـ " + activeTeamName;
+        statusText.innerText = drawerName + " يرسم للفريق " + activeTeamName;
         spinBtn.disabled = true;
-      }
-    });
-
-    function spinWheel() {
-  const extra = 1440 + Math.floor(Math.random() * 720);
-  wheelRotation += extra;
-  wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
-  socket.emit("wheel:spin", { roomCode });
-}
-
-    socket.on("wheel:result", (category) => {
-  alert("الفئة: " + category);
-});
-    });
-
-    socket.on("game:roundStarted", ({ roomState, activeTeamName, drawerName, category }) => {
-      currentRoomState = roomState;
-      currentDrawerId = roomState.activeDrawerId;
-      categoryText.innerText = category;
-      roundText.innerText = roomState.currentRound + " / " + roomState.totalRounds;
-
-      if (mySocketId === currentDrawerId) {
-        statusText.innerText = "أنتِ ترسمين الآن";
-      } else {
-        statusText.innerText = drawerName + " يرسم لفريق " + activeTeamName;
       }
 
       startLocalTimer(roomState.roundEndsAt);
     });
 
+    function spinWheel() {
+      const extra = 1440 + Math.floor(Math.random() * 720);
+      wheelRotation += extra;
+      wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
+      socket.emit("wheel:spin", { roomCode });
+    }
+
+    socket.on("wheel:result", (category) => {
+      alert("الفئة: " + category);
+    });
+
     socket.on("game:wordForDrawer", ({ category, word }) => {
+      categoryText.innerText = category;
       wordText.innerText = "الكلمة: " + word;
     });
 
@@ -905,11 +761,11 @@ function copyRoomLink() {
     }
 
     socket.on("chat:message", ({ playerName, text }) => {
-     appendChat(playerName + ": " + text);
+      appendChat(playerName + ": " + text);
     });
 
     socket.on("chat:correct", ({ playerName, answer, guessingTeam }) => {
-      appendChat(playerName + " " + answer + " (" + guessingTeam + ")", false, true);
+      appendChat("✅ " + playerName + " جاوب صح: " + answer + " (" + guessingTeam + ")", false, true);
     });
 
     socket.on("system:message", ({ text }) => {
@@ -933,25 +789,16 @@ function copyRoomLink() {
       if (e.key === "Enter") sendChat();
     });
 
-    function manualGuess(isCorrect) {
-      socket.emit("guess:manual", { roomCode, isCorrect });
-    }
-
     function startLocalTimer(endsAt) {
       clearInterval(roundTimer);
+
       roundTimer = setInterval(() => {
         const diff = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        timerText.innerText = diff;
-
+        timerText.innerText = diff + " ثانية";
         if (diff <= 0) {
           clearInterval(roundTimer);
-          socket.emit("game:timeout", { roomCode });
         }
       }, 250);
-    }
-
-    function goHome() {
-      window.location.reload();
     }
 
     socket.on("game:finished", ({ winner, teams }) => {
@@ -976,6 +823,10 @@ function copyRoomLink() {
       socket.emit("draw:clear", { roomCode });
     }
 
+    socket.on("draw:clear", () => {
+      clearLocalBoard();
+    });
+
     function getCanvasPos(e) {
       const rect = canvas.getBoundingClientRect();
       return {
@@ -984,100 +835,70 @@ function copyRoomLink() {
       };
     }
 
+    function drawSegment(x1, y1, x2, y2, color, lineWidth) {
+      ctx.beginPath();
+      ctx.lineCap = "round";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
     canvas.addEventListener("mousedown", (e) => {
       if (mySocketId !== currentDrawerId) return;
-
       drawing = true;
-      const { x, y } = getCanvasPos(e);
-
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineWidth = brushMode === "erase" ? 18 : 3;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = brushMode === "erase" ? "#ffffff" : currentColor;
-
-      socket.emit("draw:start", {
-        roomCode,
-        x,
-        y,
-        color: currentColor,
-        mode: brushMode
-      });
+      lastPoint = getCanvasPos(e);
     });
 
     canvas.addEventListener("mousemove", (e) => {
-      if (!drawing) return;
-      if (mySocketId !== currentDrawerId) return;
+      if (!drawing || mySocketId !== currentDrawerId) return;
+      const point = getCanvasPos(e);
 
-      const { x, y } = getCanvasPos(e);
+      const color = brushMode === "erase" ? "#ffffff" : currentColor;
+      const lineWidth = brushMode === "erase" ? 22 : 4;
 
-      ctx.lineWidth = brushMode === "erase" ? 18 : 3;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = brushMode === "erase" ? "#ffffff" : currentColor;
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      drawSegment(lastPoint.x, lastPoint.y, point.x, point.y, color, lineWidth);
 
       socket.emit("draw:move", {
         roomCode,
-        x,
-        y,
-        color: currentColor,
-        mode: brushMode
+        x1: lastPoint.x,
+        y1: lastPoint.y,
+        x2: point.x,
+        y2: point.y,
+        color,
+        lineWidth
       });
+
+      lastPoint = point;
     });
 
-    canvas.addEventListener("mouseup", () => {
-      if (mySocketId !== currentDrawerId) return;
+    window.addEventListener("mouseup", () => {
       drawing = false;
-      ctx.beginPath();
-      socket.emit("draw:end", { roomCode });
+      lastPoint = null;
     });
 
     canvas.addEventListener("mouseleave", () => {
-      if (mySocketId !== currentDrawerId) return;
       drawing = false;
-      ctx.beginPath();
-      socket.emit("draw:end", { roomCode });
+      lastPoint = null;
     });
 
-    socket.on("draw:start", ({ x, y, color, mode }) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineWidth = mode === "erase" ? 18 : 3;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = mode === "erase" ? "#ffffff" : color;
+    socket.on("draw:move", ({ x1, y1, x2, y2, color, lineWidth }) => {
+      drawSegment(x1, y1, x2, y2, color, lineWidth);
     });
 
-    socket.on("draw:move", ({ x, y, color, mode }) => {
-      ctx.lineWidth = mode === "erase" ? 18 : 3;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = mode === "erase" ? "#ffffff" : color;
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    });
+    function goHome() {
+      window.location.href = window.location.origin;
+    }
 
-    socket.on("draw:end", () => {
-      ctx.beginPath();
-    });
+    initPalette();
+    drawWheel();
 
-    socket.on("draw:clear", () => {
-      clearLocalBoard();
-    });
-
-    const params = new URLSearchParams(window.location.search);
-    const roomFromUrl = params.get("room");
-   if (roomFromUrl) {
-  const code = roomFromUrl.toUpperCase();
-  document.getElementById("joinCode").value = code;
-
-  const name = prompt("اكتب اسمك");
-  if (name) {
-    socket.emit("join:room", {
-      code: code,
-      name: name
-    });
-  }
-}
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get("room");
+    if (roomParam) {
+      document.getElementById("joinCode").value = roomParam.toUpperCase();
+    }
   </script>
 </body>
 </html>
