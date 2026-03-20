@@ -1,904 +1,258 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Draw Party</title>
-  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6fb;
-      color: #122033;
-    }
-    .container {
-      width: min(1100px, 94%);
-      margin: 24px auto 80px;
-    }
-    .hero, .card {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-      padding: 22px;
-      margin-bottom: 18px;
-    }
-    .hero h1 {
-      margin: 0 0 10px;
-      font-size: 56px;
-      text-align: center;
-    }
-    .hero p {
-      margin: 0;
-      text-align: center;
-      line-height: 1.8;
-      color: #44546a;
-    }
-    .badges {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 18px;
-    }
-    .badge {
-      background: #f6f8fc;
-      border: 1px solid #dbe4f0;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 14px;
-    }
-    h2, h3 {
-      margin: 0 0 14px;
-    }
-    .muted {
-      color: #66758b;
-    }
-    .grid {
-      display: grid;
-      gap: 14px;
-    }
-    .grid-2 {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-    .grid-3 {
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-    input, select, button {
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid #d9e2ef;
-      padding: 14px 16px;
-      font-size: 16px;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      font-weight: bold;
-      transition: 0.2s ease;
-    }
-    button:hover {
-      transform: translateY(-1px);
-    }
-    .primary {
-      background: #102c67;
-      color: #fff;
-    }
-    .secondary {
-      background: #eef3fb;
-      color: #102c67;
-    }
-    .danger {
-      background: #d64545;
-      color: #fff;
-    }
-    .soft {
-      background: #f5f7fb;
-      color: #16335f;
-      border: 1px solid #dbe4f0;
-    }
-    .screen { display: none; }
-    .screen.active { display: block; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لعبة أيام الطيبين</title>
 
-    .topbar {
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .pill {
-      background: #eff5ff;
-      color: #16335f;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 14px;
-    }
-    .room-link {
-      word-break: break-all;
-      background: #f8fbff;
-      border: 1px dashed #bfd0ea;
-      padding: 12px;
-      border-radius: 14px;
-      color: #34507b;
-    }
-    .players-list, .teams-list, .score-list, .final-scores {
-      display: grid;
-      gap: 10px;
-    }
-    .player-item, .team-item, .score-item {
-      background: #f8fbff;
-      border: 1px solid #dce7f7;
-      border-radius: 16px;
-      padding: 14px;
-    }
-    .team-badge {
-      display: inline-block;
-      margin-top: 8px;
-      background: #eaf3ff;
-      color: #113766;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 13px;
-    }
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
-    .game-layout {
-      display: grid;
-      grid-template-columns: 1.4fr 0.8fr;
-      gap: 18px;
-    }
-    @media (max-width: 900px) {
-      .game-layout {
-        grid-template-columns: 1fr;
-      }
-      .hero h1 { font-size: 42px; }
-    }
-
-    .board-wrap {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-      padding: 18px;
-    }
-    canvas#board {
-      width: 100%;
-      height: 420px;
-      background: #fff;
-      border: 2px solid #dce7f7;
-      border-radius: 18px;
-      touch-action: none;
-      display: block;
-    }
-    .tools {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    .swatch {
-      width: 36px;
-      height: 36px;
-      border-radius: 999px;
-      border: 2px solid transparent;
-      cursor: pointer;
-    }
-    .swatch.active {
-      border-color: #102c67;
-      transform: scale(1.06);
-    }
-
-    .side-card {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-    .wheel-box {
-      text-align: center;
-    }
-    #wheelCanvas {
-      width: 270px;
-      height: 270px;
-      max-width: 100%;
-      border-radius: 50%;
-      transition: transform 4s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .pointer {
-      font-size: 32px;
-      margin-bottom: 6px;
-    }
-
-    .chat-box {
-      height: 260px;
-      overflow-y: auto;
-      background: #f8fbff;
-      border: 1px solid #dce7f7;
-      border-radius: 16px;
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-    }
-    .chat-item {
-      background: #fff;
-      border: 1px solid #e3ebf7;
-      border-radius: 12px;
-      padding: 10px;
-      line-height: 1.6;
-    }
-    .chat-item.system {
-      background: #edf6ff;
-      color: #214a7a;
-    }
-    .chat-item.correct {
-      background: #edfff1;
-      color: #166534;
-      border-color: #b7e4c0;
-    }
-
-    .results-title {
-      font-size: 34px;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    .winner {
-      text-align: center;
-      font-size: 22px;
-      margin-bottom: 18px;
-      color: #0f2d68;
-      font-weight: bold;
-    }
-    .center {
-      text-align: center;
-    }
-    .error {
-      color: #b42318;
-      margin-top: 8px;
-      min-height: 24px;
-    }
-  </style>
+<style>
+body{font-family:sans-serif;background:#f5f7fb;text-align:center}
+canvas{border:2px solid #ccc;border-radius:10px;touch-action:none}
+button{padding:10px;border-radius:10px;margin:5px;cursor:pointer}
+#chat{height:200px;overflow:auto;border:1px solid #ccc;padding:10px}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <section id="homeScreen" class="screen active">
-      <div class="hero">
-        <h1>Draw Party 🎨</h1>
-        <p>لعبة رسم جماعية خفيفة وممتعة بين فريقين أو أكثر، فيها جولات، عجلة فئات، كلمات عربية، شات للإجابات، نقاط ولوحة رسم مباشرة.</p>
-        <div class="badges">
-          <div class="badge">15 جولة</div>
-          <div class="badge">فرق متعددة</div>
-          <div class="badge">فئات عربية</div>
-          <div class="badge">عجلة فئات</div>
-          <div class="badge">ألوان ومساحة</div>
-        </div>
-      </div>
-
-      <div class="card center">
-        <h2>جاهزة للتجربة</h2>
-        <p class="muted">تقدرين تسوين غرفة، تدخلين من صفحة ثانية، توزعين اللاعبين على الفرق، وتبدين اللعب فورًا.</p>
-      </div>
-
-      <div class="grid grid-2">
-        <div class="card">
-          <h2>إنشاء غرفة</h2>
-          <div class="grid">
-            <input id="createName" placeholder="اسمك" />
-            <select id="maxPlayers">
-              <option value="4">4 لاعبين</option>
-              <option value="6" selected>6 لاعبين</option>
-              <option value="8">8 لاعبين</option>
-              <option value="10">10 لاعبين</option>
-              <option value="12">12 لاعبين</option>
-            </select>
-            <select id="teamCount">
-              <option value="2" selected>فريقين</option>
-              <option value="3">3 فرق</option>
-              <option value="4">4 فرق</option>
-            </select>
-            <select id="roundSeconds">
-              <option value="30">30 ثانية</option>
-              <option value="60" selected>60 ثانية</option>
-              <option value="90">90 ثانية</option>
-              <option value="120">120 ثانية</option>
-            </select>
-            <button class="primary" onclick="createRoom()">إنشاء الغرفة</button>
-            <div id="homeError" class="error"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>دخول غرفة</h2>
-          <div class="grid">
-            <input id="joinName" placeholder="اسمك" />
-            <input id="joinCode" placeholder="كود الغرفة" />
-            <button class="primary" onclick="joinRoom()">دخول</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="lobbyScreen" class="screen">
-      <div class="card">
-        <div class="topbar">
-          <div class="row">
-            <span class="pill" id="roomCodeText">الغرفة: -</span>
-            <span class="pill" id="roundTimeText">وقت الجولة: -</span>
-          </div>
-          <div class="row">
-            <button class="secondary" onclick="copyRoomCode()">نسخ الكود</button>
-            <button class="secondary" onclick="copyRoomLink()">نسخ الرابط</button>
-            <button class="primary" id="startGameBtn" onclick="startGame()">ابدأ اللعبة</button>
-          </div>
-        </div>
-
-        <div class="room-link" id="roomLinkText"></div>
-
-        <div class="grid grid-3" style="margin-top: 18px;">
-          <div class="card" style="margin-bottom: 0;">
-            <h3>اللاعبون</h3>
-            <div id="playersList" class="players-list"></div>
-          </div>
-
-          <div class="card" style="margin-bottom: 0;">
-            <h3>الفرق</h3>
-            <div id="teamsList" class="teams-list"></div>
-          </div>
-
-          <div class="card" style="margin-bottom: 0;">
-            <h3>معلومات</h3>
-            <p class="muted">الهوست يقدر يوزع اللاعبين على الفرق قبل البداية.</p>
-            <p class="muted">بعد البداية، الرسام يشوف الكلمة فقط، والباقي يخمنون بالشات.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="gameScreen" class="screen">
-      <div class="topbar">
-        <div class="row">
-          <span class="pill" id="roundText">-</span>
-          <span class="pill" id="activeTeamText">-</span>
-          <span class="pill" id="categoryText">-</span>
-          <span class="pill" id="timerText">-</span>
-        </div>
-        <div class="row">
-          <span class="pill" id="statusText">-</span>
-        </div>
-      </div>
-
-      <div class="game-layout">
-        <div class="board-wrap">
-          <canvas id="board" width="1000" height="700"></canvas>
-
-          <div class="tools">
-            <div id="palette" class="row"></div>
-            <button class="soft" onclick="setBrushMode('draw')">رسم</button>
-            <button class="soft" onclick="setBrushMode('erase')">ممحاة</button>
-            <button class="danger" onclick="clearBoard()">مسح اللوحة</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="side-card wheel-box">
-            <div class="pointer">▼</div>
-            <canvas id="wheelCanvas" width="300" height="300"></canvas>
-            <div style="margin-top: 12px;">
-              <button class="primary" id="spinBtn" onclick="spinWheel()">لف العجلة</button>
-            </div>
-          </div>
-
-          <div class="side-card">
-            <h3>الكلمة</h3>
-            <div id="wordText" class="pill" style="display:block; text-align:center;">الكلمة: -</div>
-          </div>
-
-          <div class="side-card">
-            <h3>الشات</h3>
-            <div id="chatBox" class="chat-box"></div>
-            <div class="row" style="margin-top: 12px;">
-              <input id="chatInput" placeholder="اكتب تخمينك..." />
-              <button class="primary" onclick="sendChat()">إرسال</button>
-            </div>
-          </div>
-
-          <div class="side-card">
-            <h3>النقاط الحالية</h3>
-            <div id="scoreList" class="score-list"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="resultsScreen" class="screen">
-      <div class="card">
-        <div class="results-title">انتهت اللعبة 🎉</div>
-        <div id="winnerText" class="winner">الفائز: -</div>
-        <div id="finalScores" class="final-scores"></div>
-        <div class="row" style="margin-top: 18px;">
-          <button class="primary" onclick="goHome()">العودة للرئيسية</button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const SERVER_URL = "https://draw-party-production.up.railway.app";
-    const socket = io(SERVER_URL, {
-      transports: ["websocket", "polling"]
-    });
-
-    const CATEGORY_META = [
-      { name: "حيوانات", icon: "🐾", color: "#ffd6d6" },
-      { name: "مهن", icon: "🧑‍🏭", color: "#dbeafe" },
-      { name: "أكل", icon: "🍔", color: "#fef3c7" },
-      { name: "أماكن", icon: "📍", color: "#e9d5ff" },
-      { name: "أشياء", icon: "🪑", color: "#d1fae5" },
-      { name: "رياضة", icon: "⚽", color: "#fde68a" },
-      { name: "وسائل نقل", icon: "🚗", color: "#fecdd3" },
-      { name: "كرتون", icon: "🦸", color: "#bfdbfe" }
-    ];
-
-    const COLORS = ["#111111", "#ef4444", "#2563eb", "#16a34a", "#f59e0b", "#9333ea", "#0f766e", "#92400e"];
-
-    let playerName = "";
-    let roomCode = "";
-    let mySocketId = "";
-    let currentRoomState = null;
-    let currentDrawerId = null;
-    let currentColor = COLORS[0];
-    let brushMode = "draw";
-    let drawing = false;
-    let lastPoint = null;
-    let roundTimer = null;
-    let wheelRotation = 0;
-
-    const homeScreen = document.getElementById("homeScreen");
-    const lobbyScreen = document.getElementById("lobbyScreen");
-    const gameScreen = document.getElementById("gameScreen");
-    const resultsScreen = document.getElementById("resultsScreen");
-
-    const homeError = document.getElementById("homeError");
-    const roomCodeText = document.getElementById("roomCodeText");
-    const roomLinkText = document.getElementById("roomLinkText");
-    const roundTimeText = document.getElementById("roundTimeText");
-
-    const playersList = document.getElementById("playersList");
-    const teamsList = document.getElementById("teamsList");
-    const scoreList = document.getElementById("scoreList");
-    const finalScores = document.getElementById("finalScores");
-
-    const roundText = document.getElementById("roundText");
-    const activeTeamText = document.getElementById("activeTeamText");
-    const categoryText = document.getElementById("categoryText");
-    const timerText = document.getElementById("timerText");
-    const statusText = document.getElementById("statusText");
-    const wordText = document.getElementById("wordText");
-    const chatBox = document.getElementById("chatBox");
-    const chatInput = document.getElementById("chatInput");
-    const winnerText = document.getElementById("winnerText");
-    const spinBtn = document.getElementById("spinBtn");
-    const palette = document.getElementById("palette");
-    const startGameBtn = document.getElementById("startGameBtn");
-
-    const canvas = document.getElementById("board");
-    const ctx = canvas.getContext("2d");
-
-    const wheelCanvas = document.getElementById("wheelCanvas");
-    const wheelCtx = wheelCanvas.getContext("2d");
-
-    function showScreen(screen) {
-      [homeScreen, lobbyScreen, gameScreen, resultsScreen].forEach((item) => {
-        item.classList.remove("active");
-      });
-      screen.classList.add("active");
-    }
-
-    function initPalette() {
-      palette.innerHTML = "";
-      COLORS.forEach((color, index) => {
-        const button = document.createElement("button");
-        button.className = "swatch" + (index === 0 ? " active" : "");
-        button.style.background = color;
-        button.onclick = () => {
-          currentColor = color;
-          brushMode = "draw";
-          document.querySelectorAll(".swatch").forEach((item) => item.classList.remove("active"));
-          button.classList.add("active");
-        };
-        palette.appendChild(button);
-      });
-    }
-
-    function drawWheel() {
-      const cx = wheelCanvas.width / 2;
-      const cy = wheelCanvas.height / 2;
-      const radius = 135;
-      const anglePer = (Math.PI * 2) / CATEGORY_META.length;
-
-      wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
-
-      CATEGORY_META.forEach((item, index) => {
-        const start = index * anglePer - Math.PI / 2;
-        const end = start + anglePer;
-
-        wheelCtx.beginPath();
-        wheelCtx.moveTo(cx, cy);
-        wheelCtx.arc(cx, cy, radius, start, end);
-        wheelCtx.closePath();
-        wheelCtx.fillStyle = item.color;
-        wheelCtx.fill();
-        wheelCtx.strokeStyle = "#ffffff";
-        wheelCtx.lineWidth = 2;
-        wheelCtx.stroke();
-
-        wheelCtx.save();
-        wheelCtx.translate(cx, cy);
-        wheelCtx.rotate(start + anglePer / 2);
-        wheelCtx.textAlign = "center";
-        wheelCtx.fillStyle = "#1f2a44";
-        wheelCtx.font = "bold 18px Arial";
-        wheelCtx.fillText(item.icon, radius - 42, 0);
-        wheelCtx.font = "14px Arial";
-        wheelCtx.fillText(item.name, radius - 82, 0);
-        wheelCtx.restore();
-      });
-
-      wheelCtx.beginPath();
-      wheelCtx.arc(cx, cy, 24, 0, Math.PI * 2);
-      wheelCtx.fillStyle = "#1f3a63";
-      wheelCtx.fill();
-    }
-
-    function createRoom() {
-      homeError.innerText = "";
-      playerName = document.getElementById("createName").value.trim() || "هوست";
-
-      socket.emit("room:create", {
-        name: playerName,
-        maxPlayers: Number(document.getElementById("maxPlayers").value),
-        teamCount: Number(document.getElementById("teamCount").value),
-        roundSeconds: Number(document.getElementById("roundSeconds").value)
-      });
-    }
-
-    function joinRoom() {
-      homeError.innerText = "";
-      playerName = document.getElementById("joinName").value.trim() || "لاعب";
-      roomCode = document.getElementById("joinCode").value.trim().toUpperCase();
-
-      if (!roomCode) {
-        homeError.innerText = "حطي كود الغرفة";
-        return;
-      }
-
-      socket.emit("room:join", {
-        roomCode,
-        name: playerName
-      });
-    }
-
-    socket.on("connect", () => {
-      mySocketId = socket.id;
-    });
-
-    socket.on("room:error", ({ message }) => {
-      homeError.innerText = message;
-      appendChat(message, true);
-    });
-
-    socket.on("room:created", ({ roomCode: code }) => {
-      roomCode = code;
-      roomCodeText.innerText = "الغرفة: " + roomCode;
-      roomLinkText.innerText = window.location.origin + "?room=" + roomCode;
-      showScreen(lobbyScreen);
-    });
-
-    socket.on("room:state", (state) => {
-      currentRoomState = state;
-      roomCode = state.code;
-
-      roomCodeText.innerText = "الغرفة: " + state.code;
-      roundTimeText.innerText = "وقت الجولة: " + state.roundSeconds + " ثانية";
-      roomLinkText.innerText = window.location.origin + "?room=" + state.code;
-
-      renderPlayers(state.players, state.teams);
-      renderTeams(state.teams, state.players);
-      renderScores(state.teams);
-
-      startGameBtn.style.display = state.hostId === mySocketId && state.status === "lobby" ? "block" : "none";
-
-      if (state.status === "lobby") {
-        showScreen(lobbyScreen);
-      }
-
-      if (state.status === "playing") {
-        showScreen(gameScreen);
-        roundText.innerText = state.currentRound + " / " + state.totalRounds;
-        const activeTeam = state.teams.find((item) => item.id === state.activeTeamId);
-        activeTeamText.innerText = activeTeam ? activeTeam.name : "-";
-        categoryText.innerText = state.activeCategory || "-";
-        startLocalTimer(state.roundEndsAt);
-      }
-
-      if (state.status === "finished") {
-        showScreen(resultsScreen);
-      }
-    });
-
-    function renderPlayers(players, teams) {
-      playersList.innerHTML = "";
-
-      players.forEach((player) => {
-        const team = teams.find((item) => item.id === player.teamId);
-        const div = document.createElement("div");
-        div.className = "player-item";
-
-        let html = "";
-        html += "<strong>" + player.name + "</strong>";
-        html += "<div class='muted'>" + (player.isHost ? "هوست" : "لاعب") + "</div>";
-        html += "<div class='team-badge'>" + (team ? team.name : "-") + "</div>";
-
-        if (currentRoomState && currentRoomState.hostId === mySocketId) {
-          html += "<div class='row' style='margin-top:8px; gap:6px; flex-wrap:wrap;'>";
-          teams.forEach((teamItem) => {
-            const activeStyle = player.teamId === teamItem.id ? "border:2px solid #1d3557; font-weight:bold;" : "";
-            html += "<button class='soft' onclick=\"assignTeam('" + player.id + "','" + teamItem.id + "')\" style=\"" + activeStyle + "\">" + teamItem.name + "</button>";
-          });
-          html += "</div>";
-        }
-
-        div.innerHTML = html;
-        playersList.appendChild(div);
-      });
-    }
-
-    function renderTeams(teams, players) {
-      teamsList.innerHTML = "";
-      teams.forEach((team) => {
-        const members = players.filter((player) => player.teamId === team.id);
-        const div = document.createElement("div");
-        div.className = "team-item";
-        div.innerHTML =
-          "<strong>" + team.name + "</strong>" +
-          "<div class='muted'>النقاط: " + team.score + "</div>" +
-          "<div>" + (members.map((item) => item.name).join("، ") || "لا يوجد لاعبين") + "</div>";
-        teamsList.appendChild(div);
-      });
-    }
-
-    function renderScores(teams) {
-      scoreList.innerHTML = "";
-      finalScores.innerHTML = "";
-
-      teams.forEach((team) => {
-        const html =
-          "<div class='score-item'><strong>" + team.name + "</strong> - " + team.score + " نقطة</div>";
-        scoreList.innerHTML += html;
-        finalScores.innerHTML += html;
-      });
-    }
-
-    function assignTeam(playerId, teamId) {
-      if (!currentRoomState) return;
-      socket.emit("host:assign-team", {
-        roomCode: currentRoomState.code,
-        playerId,
-        teamId
-      });
-    }
-
-    function copyRoomCode() {
-      if (!currentRoomState) return;
-      navigator.clipboard.writeText(currentRoomState.code)
-        .then(() => alert("تم نسخ الكود"))
-        .catch(() => alert("ما صار نسخ"));
-    }
-
-    function copyRoomLink() {
-      if (!currentRoomState) return;
-      const link = window.location.origin + "?room=" + currentRoomState.code;
-      navigator.clipboard.writeText(link)
-        .then(() => alert("تم نسخ الرابط"))
-        .catch(() => alert("ما صار نسخ"));
-    }
-
-    function startGame() {
-      socket.emit("room:start", { roomCode });
-    }
-
-    socket.on("game:roundStarted", ({ roomState, activeTeamName, drawerName, category }) => {
-      currentDrawerId = roomState.activeDrawerId;
-      roundText.innerText = roomState.currentRound + " / " + roomState.totalRounds;
-      activeTeamText.innerText = activeTeamName || "-";
-      categoryText.innerText = category || "-";
-      wordText.innerText = "الكلمة: -";
-      clearLocalBoard();
-      showScreen(gameScreen);
-
-      if (mySocketId === currentDrawerId) {
-        statusText.innerText = "أنت الرسامة الآن - لفي العجلة";
-        spinBtn.disabled = false;
-      } else {
-        statusText.innerText = drawerName + " يرسم للفريق " + activeTeamName;
-        spinBtn.disabled = true;
-      }
-
-      startLocalTimer(roomState.roundEndsAt);
-    });
-
-    function spinWheel() {
-      const extra = 1440 + Math.floor(Math.random() * 720);
-      wheelRotation += extra;
-      wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
-      socket.emit("wheel:spin", { roomCode });
-    }
-
-    socket.on("wheel:result", (category) => {
-      alert("الفئة: " + category);
-    });
-
-    socket.on("game:wordForDrawer", ({ category, word }) => {
-      categoryText.innerText = category;
-      wordText.innerText = "الكلمة: " + word;
-    });
-
-    function appendChat(text, type = false, correct = false) {
-      const div = document.createElement("div");
-      div.className = "chat-item";
-      if (type) div.classList.add("system");
-      if (correct) div.classList.add("correct");
-      div.innerText = text;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    socket.on("chat:message", ({ playerName, text }) => {
-      appendChat(playerName + ": " + text);
-    });
-
-    socket.on("chat:correct", ({ playerName, answer, guessingTeam }) => {
-      appendChat("✅ " + playerName + " جاوب صح: " + answer + " (" + guessingTeam + ")", false, true);
-    });
-
-    socket.on("system:message", ({ text }) => {
-      appendChat(text, true);
-    });
-
-    function sendChat() {
-      const text = chatInput.value.trim();
-      if (!text) return;
-
-      socket.emit("chat:send", {
-        roomCode,
-        playerName,
-        text
-      });
-
-      chatInput.value = "";
-    }
-
-    chatInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendChat();
-    });
-
-    function startLocalTimer(endsAt) {
-      clearInterval(roundTimer);
-
-      roundTimer = setInterval(() => {
-        const diff = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        timerText.innerText = diff + " ثانية";
-        if (diff <= 0) {
-          clearInterval(roundTimer);
-        }
-      }, 250);
-    }
-
-    socket.on("game:finished", ({ winner, teams }) => {
-      clearInterval(roundTimer);
-      winnerText.innerText = winner ? "الفائز: " + winner.name : "الفائز: -";
-      renderScores(teams);
-      showScreen(resultsScreen);
-    });
-
-    function setBrushMode(mode) {
-      brushMode = mode;
-    }
-
-    function clearLocalBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath();
-    }
-
-    function clearBoard() {
-      if (mySocketId !== currentDrawerId) return;
-      clearLocalBoard();
-      socket.emit("draw:clear", { roomCode });
-    }
-
-    socket.on("draw:clear", () => {
-      clearLocalBoard();
-    });
-
-    function getCanvasPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left) * (canvas.width / rect.width),
-        y: (e.clientY - rect.top) * (canvas.height / rect.height)
-      };
-    }
-
-    function drawSegment(x1, y1, x2, y2, color, lineWidth) {
-      ctx.beginPath();
-      ctx.lineCap = "round";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    }
-
-    canvas.addEventListener("mousedown", (e) => {
-      if (mySocketId !== currentDrawerId) return;
-      drawing = true;
-      lastPoint = getCanvasPos(e);
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
-      if (!drawing || mySocketId !== currentDrawerId) return;
-      const point = getCanvasPos(e);
-
-      const color = brushMode === "erase" ? "#ffffff" : currentColor;
-      const lineWidth = brushMode === "erase" ? 22 : 4;
-
-      drawSegment(lastPoint.x, lastPoint.y, point.x, point.y, color, lineWidth);
-
-      socket.emit("draw:move", {
-        roomCode,
-        x1: lastPoint.x,
-        y1: lastPoint.y,
-        x2: point.x,
-        y2: point.y,
-        color,
-        lineWidth
-      });
-
-      lastPoint = point;
-    });
-
-    window.addEventListener("mouseup", () => {
-      drawing = false;
-      lastPoint = null;
-    });
-
-    canvas.addEventListener("mouseleave", () => {
-      drawing = false;
-      lastPoint = null;
-    });
-
-    socket.on("draw:move", ({ x1, y1, x2, y2, color, lineWidth }) => {
-      drawSegment(x1, y1, x2, y2, color, lineWidth);
-    });
-
-    function goHome() {
-      window.location.href = window.location.origin;
-    }
-
-    initPalette();
-    drawWheel();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomParam = urlParams.get("room");
-    if (roomParam) {
-      document.getElementById("joinCode").value = roomParam.toUpperCase();
-    }
-  </script>
+
+<h1>🎨 لعبة أيام الطيبين</h1>
+
+<!-- ======================================================
+HOME
+====================================================== -->
+
+<div id="home">
+<input id="name" placeholder="اسمك">
+<input id="code" placeholder="كود الغرفة">
+<br>
+<button onclick="create()">إنشاء</button>
+<button onclick="join()">دخول</button>
+</div>
+
+<!-- ======================================================
+GAME
+====================================================== -->
+
+<div id="game" style="display:none">
+
+<h3 id="status"></h3>
+
+<div id="players"></div>
+
+<canvas id="board" width="600" height="400"></canvas>
+
+<br>
+
+<input id="chatInput">
+<button onclick="send()">إرسال</button>
+<button onclick="voice()">🎤</button>
+
+<br>
+
+<button onclick="save()">💾 حفظ الرسمة</button>
+
+<div id="chat"></div>
+
+</div>
+
+<script>
+
+// ======================================================
+// FEATURE FLAGS
+// ======================================================
+
+const FEATURES = {
+  VOICE: true,
+  SAVE_DRAWING: true
+};
+
+// ======================================================
+// SOCKET
+// ======================================================
+
+const socket = io("http://localhost:3001");
+
+// ======================================================
+// STATE
+// ======================================================
+
+let roomCode = "";
+let myName = "";
+let drawerId = "";
+
+// ======================================================
+// UI ELEMENTS
+// ======================================================
+
+const home = document.getElementById("home");
+const game = document.getElementById("game");
+const chatBox = document.getElementById("chat");
+const playersDiv = document.getElementById("players");
+
+// ======================================================
+// ROOM FUNCTIONS
+// ======================================================
+
+function create(){
+  myName = name.value;
+  socket.emit("createRoom",{name:myName});
+}
+
+function join(){
+  myName = name.value;
+  roomCode = code.value;
+  socket.emit("joinRoom",{code:roomCode,name:myName});
+}
+
+// ======================================================
+// SOCKET EVENTS
+// ======================================================
+
+socket.on("roomCreated",(code)=>{
+  roomCode = code;
+  alert("الكود: "+code);
+  home.style.display="none";
+  game.style.display="block";
+});
+
+socket.on("update",(room)=>{
+  renderPlayers(room);
+});
+
+// ======================================================
+// FEATURE: TEAM PICK DRAWER
+// ======================================================
+
+function renderPlayers(room){
+  playersDiv.innerHTML="";
+
+  room.players.forEach(p=>{
+    const btn=document.createElement("button");
+    btn.innerText="اختار "+p.name+" يرسم";
+    btn.onclick=()=>{
+      socket.emit("pickDrawer",{code:roomCode,playerId:p.id});
+    };
+    playersDiv.appendChild(btn);
+  });
+}
+
+// ======================================================
+// FEATURE: DRAWING (DESKTOP + MOBILE)
+// ======================================================
+
+const canvas=document.getElementById("board");
+const ctx=canvas.getContext("2d");
+
+let drawing=false;
+
+function getPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const touch=e.touches?e.touches[0]:e;
+  return {
+    x:touch.clientX-rect.left,
+    y:touch.clientY-rect.top
+  };
+}
+
+canvas.addEventListener("mousedown",(e)=>{
+  drawing=true;
+});
+
+canvas.addEventListener("mouseup",()=>drawing=false);
+canvas.addEventListener("mouseleave",()=>drawing=false);
+
+canvas.addEventListener("mousemove",(e)=>{
+  if(!drawing) return;
+
+  const p=getPos(e);
+  ctx.fillRect(p.x,p.y,4,4);
+
+  socket.emit("draw",{code:roomCode,x:p.x,y:p.y});
+});
+
+// ===== MOBILE =====
+canvas.addEventListener("touchstart",(e)=>{
+  drawing=true;
+});
+
+canvas.addEventListener("touchend",()=>drawing=false);
+
+canvas.addEventListener("touchmove",(e)=>{
+  if(!drawing) return;
+  e.preventDefault();
+
+  const p=getPos(e);
+  ctx.fillRect(p.x,p.y,4,4);
+
+  socket.emit("draw",{code:roomCode,x:p.x,y:p.y});
+});
+
+// ===== RECEIVE DRAW =====
+socket.on("draw",(data)=>{
+  ctx.fillRect(data.x,data.y,4,4);
+});
+
+// ======================================================
+// FEATURE: CHAT
+// ======================================================
+
+function send(){
+  socket.emit("chat",{code:roomCode,name:myName,text:chatInput.value});
+  chatInput.value="";
+}
+
+socket.on("chat",(msg)=>{
+  addChat(msg.name+": "+msg.text);
+});
+
+socket.on("correct",(word)=>{
+  addChat("✅ الإجابة الصحيحة: "+word);
+});
+
+socket.on("msg",(text)=>{
+  addChat(text);
+});
+
+function addChat(text){
+  const div=document.createElement("div");
+  div.innerText=text;
+  chatBox.appendChild(div);
+}
+
+// ======================================================
+// FEATURE: VOICE
+// ======================================================
+
+function voice(){
+  if(!FEATURES.VOICE) return;
+
+  const r=new webkitSpeechRecognition();
+  r.lang="ar";
+
+  r.onresult=(e)=>{
+    chatInput.value=e.results[0][0].transcript;
+    send();
+  };
+
+  r.start();
+}
+
+// ======================================================
+// FEATURE: SAVE DRAWING
+// ======================================================
+
+function save(){
+  if(!FEATURES.SAVE_DRAWING) return;
+
+  const link=document.createElement("a");
+  link.download="drawing.png";
+  link.href=canvas.toDataURL();
+  link.click();
+}
+
+</script>
+
 </body>
 </html>
