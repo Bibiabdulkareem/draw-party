@@ -1,258 +1,77 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لعبة أيام الطيبين</title>
-
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-
-<style>
-body{font-family:sans-serif;background:#f5f7fb;text-align:center}
-canvas{border:2px solid #ccc;border-radius:10px;touch-action:none}
-button{padding:10px;border-radius:10px;margin:5px;cursor:pointer}
-#chat{height:200px;overflow:auto;border:1px solid #ccc;padding:10px}
-</style>
-</head>
-
-<body>
-
-<h1>🎨 لعبة أيام الطيبين</h1>
-
-<!-- ======================================================
-HOME
-====================================================== -->
-
-<div id="home">
-<input id="name" placeholder="اسمك">
-<input id="code" placeholder="كود الغرفة">
-<br>
-<button onclick="create()">إنشاء</button>
-<button onclick="join()">دخول</button>
-</div>
-
-<!-- ======================================================
-GAME
-====================================================== -->
-
-<div id="game" style="display:none">
-
-<h3 id="status"></h3>
-
-<div id="players"></div>
-
-<canvas id="board" width="600" height="400"></canvas>
-
-<br>
-
-<input id="chatInput">
-<button onclick="send()">إرسال</button>
-<button onclick="voice()">🎤</button>
-
-<br>
-
-<button onclick="save()">💾 حفظ الرسمة</button>
-
-<div id="chat"></div>
-
-</div>
-
-<script>
-
-// ======================================================
-// FEATURE FLAGS
-// ======================================================
-
-const FEATURES = {
-  VOICE: true,
-  SAVE_DRAWING: true
-};
-
-// ======================================================
-// SOCKET
-// ======================================================
-
-const socket = io("http://localhost:3001");
-
-// ======================================================
-// STATE
-// ======================================================
-
-let roomCode = "";
-let myName = "";
-let drawerId = "";
-
-// ======================================================
-// UI ELEMENTS
-// ======================================================
-
-const home = document.getElementById("home");
-const game = document.getElementById("game");
-const chatBox = document.getElementById("chat");
-const playersDiv = document.getElementById("players");
-
-// ======================================================
-// ROOM FUNCTIONS
-// ======================================================
-
-function create(){
-  myName = name.value;
-  socket.emit("createRoom",{name:myName});
-}
-
-function join(){
-  myName = name.value;
-  roomCode = code.value;
-  socket.emit("joinRoom",{code:roomCode,name:myName});
-}
-
-// ======================================================
-// SOCKET EVENTS
-// ======================================================
-
-socket.on("roomCreated",(code)=>{
-  roomCode = code;
-  alert("الكود: "+code);
-  home.style.display="none";
-  game.style.display="block";
-});
-
-socket.on("update",(room)=>{
-  renderPlayers(room);
-});
-
-// ======================================================
-// FEATURE: TEAM PICK DRAWER
-// ======================================================
-
-function renderPlayers(room){
-  playersDiv.innerHTML="";
-
-  room.players.forEach(p=>{
-    const btn=document.createElement("button");
-    btn.innerText="اختار "+p.name+" يرسم";
-    btn.onclick=()=>{
-      socket.emit("pickDrawer",{code:roomCode,playerId:p.id});
-    };
-    playersDiv.appendChild(btn);
-  });
-}
-
-// ======================================================
-// FEATURE: DRAWING (DESKTOP + MOBILE)
-// ======================================================
-
-const canvas=document.getElementById("board");
-const ctx=canvas.getContext("2d");
-
-let drawing=false;
-
-function getPos(e){
-  const rect=canvas.getBoundingClientRect();
-  const touch=e.touches?e.touches[0]:e;
-  return {
-    x:touch.clientX-rect.left,
-    y:touch.clientY-rect.top
-  };
-}
-
-canvas.addEventListener("mousedown",(e)=>{
-  drawing=true;
-});
-
-canvas.addEventListener("mouseup",()=>drawing=false);
-canvas.addEventListener("mouseleave",()=>drawing=false);
-
-canvas.addEventListener("mousemove",(e)=>{
-  if(!drawing) return;
-
-  const p=getPos(e);
-  ctx.fillRect(p.x,p.y,4,4);
-
-  socket.emit("draw",{code:roomCode,x:p.x,y:p.y});
-});
-
-// ===== MOBILE =====
-canvas.addEventListener("touchstart",(e)=>{
-  drawing=true;
-});
-
-canvas.addEventListener("touchend",()=>drawing=false);
-
-canvas.addEventListener("touchmove",(e)=>{
-  if(!drawing) return;
-  e.preventDefault();
-
-  const p=getPos(e);
-  ctx.fillRect(p.x,p.y,4,4);
-
-  socket.emit("draw",{code:roomCode,x:p.x,y:p.y});
-});
-
-// ===== RECEIVE DRAW =====
-socket.on("draw",(data)=>{
-  ctx.fillRect(data.x,data.y,4,4);
-});
-
-// ======================================================
-// FEATURE: CHAT
-// ======================================================
-
-function send(){
-  socket.emit("chat",{code:roomCode,name:myName,text:chatInput.value});
-  chatInput.value="";
-}
-
-socket.on("chat",(msg)=>{
-  addChat(msg.name+": "+msg.text);
-});
-
-socket.on("correct",(word)=>{
-  addChat("✅ الإجابة الصحيحة: "+word);
-});
-
-socket.on("msg",(text)=>{
-  addChat(text);
-});
-
-function addChat(text){
-  const div=document.createElement("div");
-  div.innerText=text;
-  chatBox.appendChild(div);
-}
-
-// ======================================================
-// FEATURE: VOICE
-// ======================================================
-
-function voice(){
-  if(!FEATURES.VOICE) return;
-
-  const r=new webkitSpeechRecognition();
-  r.lang="ar";
-
-  r.onresult=(e)=>{
-    chatInput.value=e.results[0][0].transcript;
-    send();
-  };
-
-  r.start();
-}
-
-// ======================================================
-// FEATURE: SAVE DRAWING
-// ======================================================
-
-function save(){
-  if(!FEATURES.SAVE_DRAWING) return;
-
-  const link=document.createElement("a");
-  link.download="drawing.png";
-  link.href=canvas.toDataURL();
-  link.click();
-}
-
-</script>
-
-</body>
-</html>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لعبة أيام الطيبين</title>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      color: #122033;
+    }
+
+    .container {
+      width: min(1100px, 94%);
+      margin: 24px auto 80px;
+    }
+
+    .hero, .card {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 54px;
+      text-align: center;
+    }
+
+    .hero p {
+      margin: 0;
+      text-align: center;
+      line-height: 1.8;
+      color: #44546a;
+    }
+
+    .badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .badge {
+      background: #f6f8fc;
+      border: 1px solid #dbe4f0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+
+    h2, h3 {
+      margin: 0 0 14px;
+    }
+
+    .muted {
+      color: #66758b;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .grid
