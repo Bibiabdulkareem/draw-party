@@ -1,20 +1,14 @@
-// ======================================================
-// IMPORTS
-// ======================================================
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 
-// ======================================================
-// APP / SERVER SETUP
-// ======================================================
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-  res.send("لعبة ايام الطيبين server is running");
+  res.send("Ayam Al-Taybeen server running");
 });
 
 app.get("/health", (_req, res) => {
@@ -29,22 +23,6 @@ const io = new Server(server, {
   }
 });
 
-// ======================================================
-// FEATURE FLAGS
-// ======================================================
-const FEATURES = {
-  STREAK: true,
-  SPEED_BONUS: true,
-  SAVE_DRAWING: true,
-  MANUAL_JUDGE: true,
-  VOICE_GUESS: true,
-  TEAM_PICK_DRAWER: true,
-  SUBSCRIPTION_DEMO: true
-};
-
-// ======================================================
-// GAME CONFIG
-// ======================================================
 const DEFAULT_TOTAL_ROUNDS = 15;
 const DEFAULT_ROUND_SECONDS = 60;
 const GUESS_TEAM_SCORE = 2;
@@ -52,69 +30,47 @@ const DRAW_TEAM_SCORE = 1;
 const SPEED_BONUS_SCORE = 1;
 const SPEED_BONUS_SECONDS = 10;
 const WRONG_GUESS_PENALTY = 1;
-const TIMEOUT_PENALTY = 1;
 
-// ======================================================
-// WORD BANK
-// ======================================================
 const WORDS_BY_CATEGORY = {
   "حيوانات": [
-    "قطة", "كلب", "أسد", "نمر", "زرافة", "فيل", "حصان", "أرنب", "دلفين", "سمكة",
-    "بطة", "دجاجة", "سنجاب", "قرد", "جمل", "حوت", "تمساح", "ثعلب", "بومة", "نحلة",
-    "دب", "بطريق", "غزال", "سلحفاة", "ديك", "فأر", "حمار", "وزة", "نورس", "نعامة",
-    "خروف", "ماعز", "ذئب", "فهد", "وحيد القرن", "تمساح", "حرباء", "خفاش", "جرادة", "دودة"
+    "قطة", "كلب", "أسد", "فيل", "زرافة", "حصان", "أرنب", "سمكة", "بطة", "قرد",
+    "دب", "خروف", "ماعز", "ذئب", "ثعلب", "سلحفاة", "بطريق", "حمار", "ديك", "نحلة"
   ],
   "مهن": [
-    "طبيب", "معلم", "مهندس", "طيار", "شرطي", "مصور", "خباز", "طباخ", "نجار", "رسام",
-    "مبرمج", "ممرض", "سائق", "صياد", "حارس", "إطفائي", "محاسب", "بائع", "مزارع", "صحفي",
-    "خياط", "كهربائي", "سباك", "صيدلي", "مذيع", "ممثل", "مدرب", "عامل بناء", "عامل نظافة", "مصمم",
-    "جراح", "محقق", "مترجم", "محامي", "قاضي", "رائد فضاء", "صائغ", "ميكانيكي", "حلاق", "فنان"
+    "طبيب", "معلم", "مهندس", "طيار", "شرطي", "خباز", "طباخ", "نجار", "رسام", "مبرمج",
+    "محاسب", "ممرض", "سائق", "صحفي", "محامي", "قاضي", "حلاق", "ميكانيكي", "مذيع", "مصور"
   ],
   "أكل": [
-    "بيتزا", "برجر", "شاورما", "تفاح", "موز", "عنب", "آيسكريم", "كعكة", "قهوة", "شاي",
-    "رز", "سمك", "خبز", "تمر", "سلطة", "برتقال", "فراولة", "معكرونة", "بيض", "بطاطس",
-    "مندي", "كبسة", "شوربة", "عصير", "جبن", "لبن", "مربى", "بسكويت", "دونات", "ذرة",
-    "فلافل", "حمص", "عدس", "بيتزا خضار", "نودلز", "كروسان", "كيك شوكولاتة", "ليمون", "مانجو", "آيس لاتيه"
+    "بيتزا", "برجر", "شاورما", "رز", "سمك", "خبز", "تفاح", "موز", "عنب", "كعكة",
+    "قهوة", "شاي", "آيسكريم", "بطاطس", "سلطة", "بيض", "مندي", "كبسة", "فلافل", "حمص"
   ],
   "أماكن": [
-    "مدرسة", "مستشفى", "مطار", "حديقة", "مطعم", "بحر", "مكتبة", "سوق", "ملعب", "بيت",
-    "مسجد", "سينما", "فندق", "محطة", "متحف", "شاطئ", "غابة", "جبل", "مزرعة", "جامعة",
-    "مقهى", "صيدلية", "مول", "مخبز", "مسرح", "ميناء", "جزيرة", "شارع", "حديقة حيوانات", "موقف سيارات",
-    "مخبز", "بنك", "مستودع", "جسر", "مخيم", "صالة رياضية", "محل ألعاب", "محطة بنزين", "مدينة ملاهي", "قرية"
+    "مدرسة", "مستشفى", "مطار", "حديقة", "مطعم", "بحر", "مكتبة", "سوق", "بيت", "ملعب",
+    "جامعة", "مول", "صيدلية", "مسجد", "سينما", "فندق", "شاطئ", "غابة", "جبل", "مزرعة"
   ],
   "أشياء": [
-    "كرسي", "طاولة", "هاتف", "ساعة", "مفتاح", "كتاب", "قلم", "حقيبة", "شمسية", "نظارة",
-    "مصباح", "باب", "كمبيوتر", "كاميرا", "كرة", "مروحة", "وسادة", "مرآة", "مقص", "فرشاة",
-    "ملعقة", "شوكة", "طبق", "خزانة", "قبعة", "خاتم", "سماعة", "زجاجة", "دفتر", "ممحاة",
-    "كنبة", "تلفزيون", "مخدة", "سجادة", "بطانية", "ريموت", "كوب", "شمعة", "مظلة", "محفظة"
+    "كرسي", "طاولة", "هاتف", "ساعة", "مفتاح", "كتاب", "قلم", "حقيبة", "نظارة", "مصباح",
+    "باب", "كاميرا", "كرة", "مروحة", "مرآة", "مقص", "ملعقة", "طبق", "قبعة", "سماعة"
   ],
   "رياضة": [
-    "كرة قدم", "كرة سلة", "تنس", "سباحة", "ملاكمة", "جري", "دراجة", "غولف", "رفع أثقال", "رماية",
-    "تزلج", "تجديف", "كاراتيه", "جمباز", "بولينج", "هوكي", "سكواش", "تايكوندو", "يوغا", "كرة طائرة",
-    "ركوب خيل", "غوص", "تسلق", "مشي", "قفز", "سباق", "مبارزة", "رمي رمح", "دفع جلة", "رمي قرص",
-    "بيسبول", "كريكيت", "تنس طاولة", "شطرنج", "بلياردو", "رغبي", "جودو", "باركور", "سنو بورد", "إبحار"
+    "كرة قدم", "كرة سلة", "تنس", "سباحة", "جري", "ملاكمة", "هوكي", "بولينج", "جمباز", "يوغا",
+    "تايكوندو", "كاراتيه", "غوص", "تسلق", "رماية", "دراجة", "كرة طائرة", "شطرنج", "بلياردو", "جودو"
   ],
   "وسائل نقل": [
-    "سيارة", "حافلة", "قطار", "طائرة", "دراجة", "سفينة", "تاكسي", "دراجة نارية", "ترام", "غواصة",
-    "شاحنة", "هليكوبتر", "قارب", "مترو", "سكوتر", "عربة", "صاروخ", "ونش", "حفار", "لوري",
-    "سيارة إسعاف", "سيارة شرطة", "سيارة إطفاء", "باص مدرسة", "دباب", "رافعة", "قاطرة", "زورق", "تلفريك", "مركبة فضائية",
-    "يخت", "عربة أطفال", "سيارة سباق", "جت سكي", "عربة تسوق", "شاحنة نقل", "قارب مطاطي", "قطار سريع", "منطاد", "سفينة شحن"
+    "سيارة", "حافلة", "قطار", "طائرة", "دراجة", "سفينة", "تاكسي", "شاحنة", "مترو", "هليكوبتر",
+    "قارب", "دراجة نارية", "سكوتر", "صاروخ", "يخت", "زورق", "باص مدرسة", "سيارة إسعاف", "سيارة شرطة", "سيارة إطفاء"
   ],
   "كرتون": [
-    "سبونج بوب", "توم", "جيري", "سونيك", "دورا", "بن تن", "ميكي", "سندباد", "بوكيمون", "شون",
-    "غامبول", "بطوط", "فلينستون", "ماشا", "كونان", "ماريو", "أولاف", "باتمان", "سوبرمان", "إلسا",
-    "بيكاتشو", "نينجا ترتلز", "ميني", "جوكر", "علاء الدين", "سندريلا", "سنو وايت", "شريك", "سيمبا", "موآنا",
-    "ميغنيوس", "ميكي ماوس", "بو", "كونغ فو باندا", "باربي", "لوفي", "ناروتو", "سبايدرمان", "ثور", "هالك"
+    "سبونج بوب", "توم", "جيري", "ميكي", "بوكيمون", "دورا", "بن تن", "ماريو", "شريك", "علاء الدين",
+    "بيكاتشو", "موآنا", "إلسا", "سيمبا", "ميني", "باتمان", "سوبرمان", "كونغ فو باندا", "باربي", "ناروتو"
   ],
   "طبيعة": [
     "شمس", "قمر", "نجمة", "شجرة", "وردة", "سحابة", "مطر", "ثلج", "قوس قزح", "بركان",
-    "نهر", "بحيرة", "صحراء", "جزيرة", "غابة", "جبل", "بحر", "صخرة", "ورقة", "نخلة",
-    "عاصفة", "سماء", "ندى", "رعد", "شلال", "وادي", "رمال", "جليد", "زهرة", "بذرة"
+    "نهر", "بحيرة", "صحراء", "جزيرة", "غابة", "جبل", "بحر", "صخرة", "نخلة", "شلال"
   ],
   "أفلام ومسلسلات": [
-    "هاري بوتر", "باتمان", "سبايدرمان", "فروزن", "الأسد الملك", "شريك", "أفاتار", "ترولز", "علاء الدين", "سندريلا",
-    "تايتانيك", "جوكر", "كونغ فو باندا", "موآنا", "كارز", "إنكانتو", "سوبرمان", "ثور", "هالك", "إلسا",
-    "باربي", "ديدبول", "شيرلوك", "رابنزل", "ون بيس", "ناروتو", "فريندز", "لعبة الحبار", "بيكي بلايندرز", "لوكاي"
+    "هاري بوتر", "باتمان", "سبايدرمان", "فروزن", "الأسد الملك", "شريك", "تايتانيك", "جوكر", "موآنا", "سندريلا",
+    "ثور", "هالك", "باربي", "شيرلوك", "ون بيس", "ناروتو", "فريندز", "لعبة الحبار", "بيكي بلايندرز", "علاء الدين"
   ]
 };
 
@@ -132,15 +88,8 @@ const CATEGORY_META = [
 ];
 
 const CATEGORY_NAMES = CATEGORY_META.map((item) => item.name);
-
-// ======================================================
-// MEMORY STORAGE
-// ======================================================
 const rooms = new Map();
 
-// ======================================================
-// HELPERS
-// ======================================================
 function createRoomCode() {
   return Math.random().toString(36).slice(2, 7).toUpperCase();
 }
@@ -206,7 +155,7 @@ function emitRoomState(roomCode) {
 }
 
 function chooseNextTeam(room) {
-  const teamIndex = room.currentRound % room.teams.length;
+  const teamIndex = (room.currentRound - 1) % room.teams.length;
   return room.teams[teamIndex];
 }
 
@@ -260,35 +209,13 @@ function prepareNextRound(roomCode) {
   room.lastGuess = null;
   room.roundResolved = false;
   room.chooserTeamId = activeTeam.id;
-  room.status = FEATURES.TEAM_PICK_DRAWER ? "choosing-drawer" : "spinning";
+  room.status = "choosing-drawer";
 
-  if (FEATURES.TEAM_PICK_DRAWER) {
-    io.to(roomCode).emit("game:chooseDrawer", {
-      roundNumber: room.currentRound,
-      activeTeamName: activeTeam.name,
-      activeTeamId: activeTeam.id
-    });
-  } else {
-    const teamPlayers = room.players.filter((item) => item.teamId === activeTeam.id);
-    if (teamPlayers.length) {
-      room.activeDrawerId = teamPlayers[0].id;
-      const category = CATEGORY_NAMES[Math.floor(Math.random() * CATEGORY_NAMES.length)];
-      const words = WORDS_BY_CATEGORY[category];
-      room.activeCategory = category;
-      room.activeWord = words[Math.floor(Math.random() * words.length)];
-
-      io.to(roomCode).emit("game:prepareRound", {
-        roundNumber: room.currentRound,
-        roomState: {
-          currentRound: room.currentRound,
-          totalRounds: room.totalRounds,
-          activeDrawerId: room.activeDrawerId
-        },
-        activeTeamName: activeTeam.name,
-        drawerName: teamPlayers[0].name
-      });
-    }
-  }
+  io.to(roomCode).emit("game:chooseDrawer", {
+    roundNumber: room.currentRound,
+    activeTeamName: activeTeam.name,
+    activeTeamId: activeTeam.id
+  });
 
   emitRoomState(roomCode);
 }
@@ -339,19 +266,6 @@ function handleRoundTimeout(roomCode) {
   const room = rooms.get(roomCode);
   if (!room || room.status !== "playing") return;
 
-  const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
-  if (activeTeam) {
-    activeTeam.score = Math.max(0, activeTeam.score - TIMEOUT_PENALTY);
-  }
-
-  if (FEATURES.STREAK) {
-    room.players.forEach((player) => {
-      if (player.teamId !== room.activeTeamId && player.id !== room.activeDrawerId) {
-        player.streak = 0;
-      }
-    });
-  }
-
   io.to(roomCode).emit("round:ended", {
     reason: "timeout",
     word: room.activeWord
@@ -382,7 +296,7 @@ function applyCorrectGuess(roomCode, player, answerText) {
 
   let bonusText = "";
   const elapsedMs = Date.now() - room.roundStartedAt;
-  const speedBonusApplied = FEATURES.SPEED_BONUS && elapsedMs <= SPEED_BONUS_SECONDS * 1000;
+  const speedBonusApplied = elapsedMs <= SPEED_BONUS_SECONDS * 1000;
 
   if (guessTeam) {
     guessTeam.score += GUESS_TEAM_SCORE;
@@ -396,15 +310,13 @@ function applyCorrectGuess(roomCode, player, answerText) {
     drawTeam.score += DRAW_TEAM_SCORE;
   }
 
-  if (FEATURES.STREAK) {
-    room.players.forEach((item) => {
-      if (item.id === player.id) {
-        item.streak = (item.streak || 0) + 1;
-      } else if (item.teamId !== room.activeTeamId) {
-        item.streak = 0;
-      }
-    });
-  }
+  room.players.forEach((item) => {
+    if (item.id === player.id) {
+      item.streak = (item.streak || 0) + 1;
+    } else if (item.teamId !== room.activeTeamId) {
+      item.streak = 0;
+    }
+  });
 
   io.to(roomCode).emit("chat:correct", {
     playerName: player.name,
@@ -423,7 +335,7 @@ function applyCorrectGuess(roomCode, player, answerText) {
     });
   }
 
-  if (FEATURES.STREAK && (player.streak || 0) >= 3) {
+  if ((player.streak || 0) >= 3) {
     io.to(roomCode).emit("streak:show", {
       playerName: player.name,
       streak: player.streak
@@ -442,14 +354,7 @@ function applyCorrectGuess(roomCode, player, answerText) {
   }, 1800);
 }
 
-// ======================================================
-// SOCKET EVENTS
-// ======================================================
 io.on("connection", (socket) => {
-
-  // ====================================================
-  // ROOM EVENTS
-  // ====================================================
   socket.on("room:create", (payload) => {
     const name = payload && payload.name ? payload.name : "هوست";
     const maxPlayers = Math.max(2, Math.min(12, Number(payload.maxPlayers) || 6));
@@ -560,9 +465,6 @@ io.on("connection", (socket) => {
     prepareNextRound(room.code);
   });
 
-  // ====================================================
-  // FEATURE: TEAM PICK DRAWER
-  // ====================================================
   socket.on("drawer:choose", (payload) => {
     const room = rooms.get(payload.roomCode);
     if (!room) return;
@@ -572,7 +474,6 @@ io.on("connection", (socket) => {
     if (!chooser) return;
 
     const canChoose =
-      !FEATURES.TEAM_PICK_DRAWER ||
       chooser.teamId === room.chooserTeamId ||
       room.hostId === socket.id;
 
@@ -583,11 +484,6 @@ io.on("connection", (socket) => {
     if (drawer.teamId !== room.chooserTeamId) return;
 
     room.activeDrawerId = drawer.id;
-
-    const category = CATEGORY_NAMES[Math.floor(Math.random() * CATEGORY_NAMES.length)];
-    const words = WORDS_BY_CATEGORY[category];
-    room.activeCategory = category;
-    room.activeWord = words[Math.floor(Math.random() * words.length)];
     room.status = "spinning";
 
     const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
@@ -606,14 +502,16 @@ io.on("connection", (socket) => {
     emitRoomState(room.code);
   });
 
-  // ====================================================
-  // FEATURE: WHEEL
-  // ====================================================
   socket.on("wheel:spin", (payload) => {
     const room = rooms.get(payload.roomCode);
     if (!room) return;
     if (room.status !== "spinning") return;
     if (room.activeDrawerId !== socket.id) return;
+
+    const category = CATEGORY_NAMES[Math.floor(Math.random() * CATEGORY_NAMES.length)];
+    const words = WORDS_BY_CATEGORY[category];
+    room.activeCategory = category;
+    room.activeWord = words[Math.floor(Math.random() * words.length)];
 
     io.to(room.code).emit("wheel:result", {
       category: room.activeCategory
@@ -624,9 +522,6 @@ io.on("connection", (socket) => {
     }, 1500);
   });
 
-  // ====================================================
-  // FEATURE: DRAWING
-  // ====================================================
   socket.on("draw:move", (payload) => {
     const room = rooms.get(payload.roomCode);
     if (!room) return;
@@ -650,9 +545,6 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("draw:clear");
   });
 
-  // ====================================================
-  // FEATURE: CHAT / AUTO CORRECT
-  // ====================================================
   socket.on("chat:send", (payload) => {
     const room = rooms.get(payload.roomCode);
     if (!room || room.status !== "playing") return;
@@ -683,12 +575,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ====================================================
-  // FEATURE: MANUAL JUDGE
-  // ====================================================
   socket.on("guess:manual", (payload) => {
-    if (!FEATURES.MANUAL_JUDGE) return;
-
     const room = rooms.get(payload.roomCode);
     if (!room || room.status !== "playing") return;
 
@@ -710,9 +597,7 @@ io.on("connection", (socket) => {
         team.score = Math.max(0, team.score - WRONG_GUESS_PENALTY);
       }
 
-      if (FEATURES.STREAK) {
-        player.streak = 0;
-      }
+      player.streak = 0;
 
       io.to(room.code).emit("system:message", {
         text: room.lastGuess.playerName + " إجابته خطأ"
@@ -723,9 +608,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ====================================================
-  // DISCONNECT
-  // ====================================================
   socket.on("disconnect", () => {
     for (const [roomCode, room] of rooms.entries()) {
       const leavingPlayer = getPlayerById(room, socket.id);
@@ -736,7 +618,6 @@ io.on("connection", (socket) => {
       if (!room.players.length) {
         if (room.roundTimer) {
           clearTimeout(room.roundTimer);
-          room.roundTimer = null;
         }
         rooms.delete(roomCode);
         continue;
@@ -775,5 +656,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log("لعبة ايام الطيبين server running on port " + PORT);
+  console.log("Ayam Al-Taybeen server listening on port " + PORT);
 });
