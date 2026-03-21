@@ -1,7 +1,7 @@
 {
   "name": "ayam-altaybeen",
   "version": "1.0.0",
-  "description": "لعبة ايام الطيبين",
+  "description": "لعبة أيام الطيبين",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
