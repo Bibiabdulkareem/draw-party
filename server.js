@@ -23,71 +23,116 @@ const io = new Server(server, {
   }
 });
 
-const DEFAULT_TOTAL_ROUNDS = 15;
-const DEFAULT_ROUND_SECONDS = 60;
-const GUESS_TEAM_SCORE = 2;
-const DRAW_TEAM_SCORE = 1;
-const SPEED_BONUS_SCORE = 1;
-const SPEED_BONUS_SECONDS = 10;
-const WRONG_GUESS_PENALTY = 1;
-
-const WORDS_BY_CATEGORY = {
-  "حيوانات": [
-    "قطة", "كلب", "أسد", "فيل", "زرافة", "حصان", "أرنب", "سمكة", "بطة", "قرد",
-    "دب", "خروف", "ماعز", "ذئب", "ثعلب", "سلحفاة", "بطريق", "حمار", "ديك", "نحلة"
-  ],
-  "مهن": [
-    "طبيب", "معلم", "مهندس", "طيار", "شرطي", "خباز", "طباخ", "نجار", "رسام", "مبرمج",
-    "محاسب", "ممرض", "سائق", "صحفي", "محامي", "قاضي", "حلاق", "ميكانيكي", "مذيع", "مصور"
-  ],
-  "أكل": [
-    "بيتزا", "برجر", "شاورما", "رز", "سمك", "خبز", "تفاح", "موز", "عنب", "كعكة",
-    "قهوة", "شاي", "آيسكريم", "بطاطس", "سلطة", "بيض", "مندي", "كبسة", "فلافل", "حمص"
-  ],
-  "أماكن": [
-    "مدرسة", "مستشفى", "مطار", "حديقة", "مطعم", "بحر", "مكتبة", "سوق", "بيت", "ملعب",
-    "جامعة", "مول", "صيدلية", "مسجد", "سينما", "فندق", "شاطئ", "غابة", "جبل", "مزرعة"
-  ],
-  "أشياء": [
-    "كرسي", "طاولة", "هاتف", "ساعة", "مفتاح", "كتاب", "قلم", "حقيبة", "نظارة", "مصباح",
-    "باب", "كاميرا", "كرة", "مروحة", "مرآة", "مقص", "ملعقة", "طبق", "قبعة", "سماعة"
-  ],
-  "رياضة": [
-    "كرة قدم", "كرة سلة", "تنس", "سباحة", "جري", "ملاكمة", "هوكي", "بولينج", "جمباز", "يوغا",
-    "تايكوندو", "كاراتيه", "غوص", "تسلق", "رماية", "دراجة", "كرة طائرة", "شطرنج", "بلياردو", "جودو"
-  ],
-  "وسائل نقل": [
-    "سيارة", "حافلة", "قطار", "طائرة", "دراجة", "سفينة", "تاكسي", "شاحنة", "مترو", "هليكوبتر",
-    "قارب", "دراجة نارية", "سكوتر", "صاروخ", "يخت", "زورق", "باص مدرسة", "سيارة إسعاف", "سيارة شرطة", "سيارة إطفاء"
-  ],
-  "كرتون": [
-    "سبونج بوب", "توم", "جيري", "ميكي", "بوكيمون", "دورا", "بن تن", "ماريو", "شريك", "علاء الدين",
-    "بيكاتشو", "موآنا", "إلسا", "سيمبا", "ميني", "باتمان", "سوبرمان", "كونغ فو باندا", "باربي", "ناروتو"
-  ],
-  "طبيعة": [
-    "شمس", "قمر", "نجمة", "شجرة", "وردة", "سحابة", "مطر", "ثلج", "قوس قزح", "بركان",
-    "نهر", "بحيرة", "صحراء", "جزيرة", "غابة", "جبل", "بحر", "صخرة", "نخلة", "شلال"
-  ],
-  "أفلام ومسلسلات": [
-    "هاري بوتر", "باتمان", "سبايدرمان", "فروزن", "الأسد الملك", "شريك", "تايتانيك", "جوكر", "موآنا", "سندريلا",
-    "ثور", "هالك", "باربي", "شيرلوك", "ون بيس", "ناروتو", "فريندز", "لعبة الحبار", "بيكي بلايندرز", "علاء الدين"
-  ]
+const DEFAULT_SETTINGS = {
+  totalRounds: 10,
+  roundSeconds: 45,
+  targetScore: 35,
+  gameMode: "both"
 };
 
-const CATEGORY_META = [
-  { name: "حيوانات", icon: "🐾" },
-  { name: "مهن", icon: "🧑‍🏭" },
-  { name: "أكل", icon: "🍔" },
-  { name: "أماكن", icon: "📍" },
-  { name: "أشياء", icon: "🪑" },
-  { name: "رياضة", icon: "⚽" },
-  { name: "وسائل نقل", icon: "🚗" },
-  { name: "كرتون", icon: "🦸" },
-  { name: "طبيعة", icon: "🌿" },
-  { name: "أفلام ومسلسلات", icon: "🎬" }
-];
+const SCORE = {
+  correct: 10,
+  speed: 5,
+  streak: 5,
+  speedWindowSeconds: 12
+};
 
-const CATEGORY_NAMES = CATEGORY_META.map((item) => item.name);
+const SETTING_OPTIONS = {
+  totalRounds: [8, 10, 12, 15],
+  roundSeconds: [40, 45, 60],
+  targetScore: [25, 35, 40],
+  gameMode: ["write", "choices", "both"]
+};
+
+const CATEGORY_TREE = {
+  "حيوانات": {
+    icon: "🐾",
+    subcategories: {
+      "برية": ["أسد", "فيل", "زرافة", "ذئب", "ثعلب", "دب", "غزال", "قرد"],
+      "أليفة": ["قطة", "كلب", "أرنب", "حصان", "خروف", "ماعز", "هامستر", "سمكة"],
+      "بحرية": ["دلفين", "قرش", "حوت", "أخطبوط", "سلطعون", "نجم البحر", "فقمة", "سلحفاة"]
+    }
+  },
+  "أكل": {
+    icon: "🍔",
+    subcategories: {
+      "وجبات": ["بيتزا", "برجر", "شاورما", "مندي", "كبسة", "مكرونة", "سوشي", "فلافل"],
+      "حلويات": ["كعكة", "بقلاوة", "آيس كريم", "دونات", "كرواسون", "كوكيز", "كنافة", "تشيزكيك"],
+      "مشروبات": ["قهوة", "شاي", "عصير", "حليب", "موهيتو", "ليمونادة", "كاكاو", "لبن"]
+    }
+  },
+  "أماكن": {
+    icon: "📍",
+    subcategories: {
+      "يومية": ["مدرسة", "مستشفى", "مطار", "مطعم", "بيت", "مول", "صيدلية", "مكتبة"],
+      "ترفيه": ["سينما", "ملعب", "حديقة", "شاطئ", "منتزه", "متحف", "مدينة ألعاب", "مقهى"],
+      "طبيعة": ["غابة", "جبل", "بحر", "صحراء", "جزيرة", "نهر", "شلال", "بحيرة"]
+    }
+  },
+  "أشياء": {
+    icon: "🪑",
+    subcategories: {
+      "منزل": ["كرسي", "طاولة", "مصباح", "مرآة", "مروحة", "وسادة", "باب", "معلقة"],
+      "تقنية": ["هاتف", "كاميرا", "حاسوب", "سماعة", "ريموت", "لوحة مفاتيح", "ماوس", "ساعة ذكية"],
+      "مدرسة": ["كتاب", "قلم", "حقيبة", "مسطرة", "ممحاة", "دفتر", "مقص", "ألوان"]
+    }
+  },
+  "رياضة": {
+    icon: "⚽",
+    subcategories: {
+      "كرة": ["كرة قدم", "كرة سلة", "كرة طائرة", "تنس", "بولينج", "هوكي", "بلياردو", "جولف"],
+      "قتال": ["ملاكمة", "كاراتيه", "جودو", "تايكوندو", "مصارعة", "مبارزة"],
+      "فردية": ["سباحة", "جري", "غوص", "رماية", "تسلق", "يوغا", "جمباز", "دراجات"]
+    }
+  },
+  "وسائل نقل": {
+    icon: "🚗",
+    subcategories: {
+      "برية": ["سيارة", "حافلة", "قطار", "تاكسي", "شاحنة", "دراجة", "مترو", "سكوتر"],
+      "جوية": ["طائرة", "هليكوبتر", "منطاد", "مروحية", "طائرة ورقية", "صاروخ"],
+      "بحرية": ["سفينة", "قارب", "يخت", "زورق", "غواصة", "عبّارة"]
+    }
+  },
+  "كرتون": {
+    icon: "🦸",
+    subcategories: {
+      "كلاسيك": ["توم", "جيري", "ميكي", "سندباد", "سنووايت", "الأسد الملك", "علاء الدين", "سيمبا"],
+      "حديث": ["سبونج بوب", "بن تن", "موآنا", "إلسا", "شريك", "باربي", "كونغ فو باندا", "بوكيمون"],
+      "أنمي": ["ناروتو", "ون بيس", "بيكاتشو", "ساسكي", "لوفي", "غوكو", "تشانل", "جومانا"]
+    }
+  },
+  "طبيعة": {
+    icon: "🌿",
+    subcategories: {
+      "سماء": ["شمس", "قمر", "نجمة", "سحابة", "مطر", "ثلج", "قوس قزح", "برق"],
+      "أرض": ["شجرة", "وردة", "صخرة", "غابة", "جبل", "بركان", "نخلة", "شلال"],
+      "مياه": ["بحر", "نهر", "بحيرة", "جزيرة", "موجة", "مرجان", "نافورة", "دلفين"]
+    }
+  },
+  "أعلام": {
+    icon: "🏁",
+    subcategories: {
+      "عربية": ["الكويت", "السعودية", "الإمارات", "قطر", "البحرين", "عمان", "مصر", "المغرب"],
+      "آسيا": ["اليابان", "الصين", "كوريا الجنوبية", "الهند", "تايلند", "إندونيسيا"],
+      "عالمية": ["فرنسا", "إيطاليا", "ألمانيا", "البرازيل", "الأرجنتين", "أمريكا", "بريطانيا", "كندا"]
+    }
+  },
+  "مسلسلات": {
+    icon: "📺",
+    subcategories: {
+      "عربي": ["طاش ما طاش", "سيلفي", "باب الحارة", "واي فاي", "مخرج 7", "من شارع الهرم"],
+      "أجنبي": ["فريندز", "شيرلوك", "بيكي بلايندرز", "لعبة الحبار", "سترينجر ثينقز", "لافا كاسا دي بابيل"],
+      "أنمي": ["ون بيس", "ناروتو", "ديث نوت", "هجوم العمالقة", "قاتل الشياطين", "جوجوتسو كايسن"]
+    }
+  }
+};
+
+const CATEGORY_META = Object.entries(CATEGORY_TREE).map(([name, value]) => ({
+  name,
+  icon: value.icon,
+  subcategories: Object.keys(value.subcategories)
+}));
+
 const rooms = new Map();
 
 function createRoomCode() {
@@ -96,8 +141,8 @@ function createRoomCode() {
 
 function buildTeams(teamCount) {
   return Array.from({ length: teamCount }, (_, index) => ({
-    id: "team-" + (index + 1),
-    name: "الفريق " + (index + 1),
+    id: `team-${index + 1}`,
+    name: `الفريق ${index + 1}`,
     score: 0
   }));
 }
@@ -107,7 +152,7 @@ function getPlayerById(room, playerId) {
 }
 
 function normalizeArabic(text = "") {
-  return text
+  return String(text)
     .trim()
     .toLowerCase()
     .replace(/[.,!؟]/g, "")
@@ -121,13 +166,75 @@ function normalizeArabic(text = "") {
     .replace(/\s+/g, " ");
 }
 
-function publicPlayers(players) {
-  return players.map((player) => ({
+function pickFrom(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function makeOutline(word) {
+  const parts = String(word).split(" ");
+  return parts.map((part) => {
+    if (part.length <= 1) return part;
+    if (part.length === 2) return `${part[0]}_`;
+    return `${part[0]}${"_".repeat(part.length - 2)}${part[part.length - 1]}`;
+  }).join(" ");
+}
+
+function sampleChoices(answer) {
+  const pool = [];
+  Object.values(CATEGORY_TREE).forEach((category) => {
+    Object.values(category.subcategories).forEach((items) => {
+      pool.push(...items);
+    });
+  });
+
+  const unique = Array.from(new Set(pool.filter((item) => item !== answer)));
+  const distractors = [];
+  while (unique.length && distractors.length < 3) {
+    const index = Math.floor(Math.random() * unique.length);
+    distractors.push(unique.splice(index, 1)[0]);
+  }
+
+  const choices = [answer, ...distractors];
+  return choices.sort(() => Math.random() - 0.5);
+}
+
+function chooseRoundContent() {
+  const categoryName = pickFrom(Object.keys(CATEGORY_TREE));
+  const category = CATEGORY_TREE[categoryName];
+  const subcategoryName = pickFrom(Object.keys(category.subcategories));
+  const word = pickFrom(category.subcategories[subcategoryName]);
+  return {
+    category: categoryName,
+    subcategory: subcategoryName,
+    word,
+    choices: sampleChoices(word),
+    outline: makeOutline(word),
+    hint: `عدد الحروف: ${word.replace(/\s/g, "").length}`
+  };
+}
+
+function buildRoundPayload(room) {
+  return {
+    currentRound: room.currentRound,
+    totalRounds: room.settings.totalRounds,
+    activeDrawerId: room.activeDrawerId,
+    activeTeamId: room.activeTeamId,
+    activeCategory: room.activeCategory,
+    activeSubcategory: room.activeSubcategory,
+    roundEndsAt: room.roundEndsAt,
+    gameMode: room.settings.gameMode,
+    targetScore: room.settings.targetScore
+  };
+}
+
+function publicPlayers(room) {
+  return room.players.map((player) => ({
     id: player.id,
     name: player.name,
     teamId: player.teamId,
     isHost: player.isHost,
-    streak: player.streak || 0
+    streak: player.streak || 0,
+    role: player.id === room.activeDrawerId ? "drawer" : (player.teamId === room.activeTeamId ? "guesser" : "viewer")
   }));
 }
 
@@ -137,20 +244,30 @@ function emitRoomState(roomCode) {
 
   io.to(roomCode).emit("room:state", {
     code: room.code,
+    name: room.name,
     hostId: room.hostId,
     status: room.status,
     maxPlayers: room.maxPlayers,
     teamCount: room.teamCount,
-    roundSeconds: room.roundSeconds,
-    totalRounds: room.totalRounds,
+    settings: room.settings,
     currentRound: room.currentRound,
     activeTeamId: room.activeTeamId,
     activeDrawerId: room.activeDrawerId,
     activeCategory: room.activeCategory,
+    activeSubcategory: room.activeSubcategory,
     roundEndsAt: room.roundEndsAt,
-    chooserTeamId: room.chooserTeamId || null,
-    players: publicPlayers(room.players),
-    teams: room.teams
+    chooserTeamId: room.chooserTeamId,
+    players: publicPlayers(room),
+    teams: room.teams,
+    categories: CATEGORY_META
+  });
+}
+
+function systemMessage(roomCode, text, type = "system") {
+  io.to(roomCode).emit("system:message", {
+    text,
+    type,
+    at: Date.now()
   });
 }
 
@@ -159,26 +276,40 @@ function chooseNextTeam(room) {
   return room.teams[teamIndex];
 }
 
-function finishGame(roomCode) {
+function clearRoundTimer(room) {
+  if (room.roundTimer) {
+    clearTimeout(room.roundTimer);
+    room.roundTimer = null;
+  }
+}
+
+function maybeFinishByTargetScore(roomCode) {
+  const room = rooms.get(roomCode);
+  if (!room) return false;
+  const winner = room.teams.find((team) => team.score >= room.settings.targetScore);
+  if (!winner) return false;
+  finishGame(roomCode, `وصل ${winner.name} إلى ${room.settings.targetScore} نقطة`);
+  return true;
+}
+
+function finishGame(roomCode, reason = "انتهت اللعبة") {
   const room = rooms.get(roomCode);
   if (!room) return;
 
   room.status = "finished";
   room.roundEndsAt = null;
   room.chooserTeamId = null;
-
-  if (room.roundTimer) {
-    clearTimeout(room.roundTimer);
-    room.roundTimer = null;
-  }
+  clearRoundTimer(room);
 
   const winner = room.teams.slice().sort((a, b) => b.score - a.score)[0] || null;
 
   io.to(roomCode).emit("game:finished", {
     winner,
-    teams: room.teams
+    teams: room.teams,
+    reason
   });
 
+  systemMessage(roomCode, `🏁 ${reason}`, "finish");
   emitRoomState(roomCode);
 }
 
@@ -186,13 +317,14 @@ function prepareNextRound(roomCode) {
   const room = rooms.get(roomCode);
   if (!room) return;
 
-  if (room.roundTimer) {
-    clearTimeout(room.roundTimer);
-    room.roundTimer = null;
+  clearRoundTimer(room);
+
+  if (maybeFinishByTargetScore(roomCode)) {
+    return;
   }
 
-  if (room.currentRound >= room.totalRounds) {
-    finishGame(roomCode);
+  if (room.currentRound >= room.settings.totalRounds) {
+    finishGame(roomCode, "اكتملت كل الجولات");
     return;
   }
 
@@ -203,7 +335,11 @@ function prepareNextRound(roomCode) {
   room.activeTeamId = activeTeam.id;
   room.activeDrawerId = null;
   room.activeCategory = null;
+  room.activeSubcategory = null;
   room.activeWord = null;
+  room.roundChoices = [];
+  room.roundOutline = "";
+  room.roundHint = "";
   room.roundEndsAt = null;
   room.roundStartedAt = null;
   room.lastGuess = null;
@@ -217,6 +353,7 @@ function prepareNextRound(roomCode) {
     activeTeamId: activeTeam.id
   });
 
+  systemMessage(roomCode, `🎯 دور ${activeTeam.name} لاختيار الرسام`, "drawer");
   emitRoomState(roomCode);
 }
 
@@ -226,7 +363,7 @@ function startRoundAfterWheel(roomCode) {
   if (!room.activeDrawerId || !room.activeCategory || !room.activeWord) return;
 
   room.status = "playing";
-  room.roundEndsAt = Date.now() + room.roundSeconds * 1000;
+  room.roundEndsAt = Date.now() + room.settings.roundSeconds * 1000;
   room.roundStartedAt = Date.now();
   room.lastGuess = null;
   room.roundResolved = false;
@@ -237,29 +374,43 @@ function startRoundAfterWheel(roomCode) {
   const drawer = getPlayerById(room, room.activeDrawerId);
 
   io.to(roomCode).emit("game:roundStarted", {
-    roomState: {
-      currentRound: room.currentRound,
-      totalRounds: room.totalRounds,
-      activeDrawerId: room.activeDrawerId,
-      roundEndsAt: room.roundEndsAt
-    },
+    roomState: buildRoundPayload(room),
     activeTeamName: activeTeam ? activeTeam.name : "-",
     drawerName: drawer ? drawer.name : "-",
-    category: room.activeCategory
+    category: room.activeCategory,
+    subcategory: room.activeSubcategory,
+    gameMode: room.settings.gameMode
   });
 
   if (drawer) {
     io.to(drawer.id).emit("game:wordForDrawer", {
       category: room.activeCategory,
-      word: room.activeWord
+      subcategory: room.activeSubcategory,
+      word: room.activeWord,
+      outline: room.roundOutline,
+      hint: room.roundHint,
+      gameMode: room.settings.gameMode
     });
   }
 
+  room.players.forEach((player) => {
+    if (player.teamId === room.activeTeamId && player.id !== room.activeDrawerId) {
+      io.to(player.id).emit("game:guessPrompt", {
+        category: room.activeCategory,
+        subcategory: room.activeSubcategory,
+        outline: room.roundOutline,
+        choices: room.settings.gameMode === "write" ? [] : room.roundChoices,
+        mode: room.settings.gameMode
+      });
+    }
+  });
+
+  systemMessage(roomCode, `🎨 بدأت الجولة: ${activeTeam ? activeTeam.name : "-"} يرسمون ويخمنون`, "round");
   emitRoomState(roomCode);
 
   room.roundTimer = setTimeout(() => {
     handleRoundTimeout(roomCode);
-  }, room.roundSeconds * 1000);
+  }, room.settings.roundSeconds * 1000);
 }
 
 function handleRoundTimeout(roomCode) {
@@ -271,10 +422,7 @@ function handleRoundTimeout(roomCode) {
     word: room.activeWord
   });
 
-  io.to(roomCode).emit("system:message", {
-    text: "انتهى الوقت. الكلمة كانت: " + room.activeWord
-  });
-
+  systemMessage(roomCode, `⏱️ انتهى الوقت. الكلمة كانت: ${room.activeWord}`, "timeout");
   emitRoomState(roomCode);
 
   setTimeout(() => {
@@ -282,38 +430,43 @@ function handleRoundTimeout(roomCode) {
   }, 1800);
 }
 
+function applyWrongGuess(room, player) {
+  if (!player) return;
+  player.streak = 0;
+  emitRoomState(room.code);
+}
+
 function applyCorrectGuess(roomCode, player, answerText) {
   const room = rooms.get(roomCode);
   if (!room || room.status !== "playing" || !player) return;
-  if (player.id === room.activeDrawerId) return;
-  if (player.teamId === room.activeTeamId) return;
   if (room.roundResolved) return;
+  if (player.id === room.activeDrawerId) return;
+  if (player.teamId !== room.activeTeamId) return;
 
   room.roundResolved = true;
 
-  const guessTeam = room.teams.find((team) => team.id === player.teamId);
-  const drawTeam = room.teams.find((team) => team.id === room.activeTeamId);
-
-  let bonusText = "";
+  const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
   const elapsedMs = Date.now() - room.roundStartedAt;
-  const speedBonusApplied = elapsedMs <= SPEED_BONUS_SECONDS * 1000;
+  const speedBonusApplied = elapsedMs <= SCORE.speedWindowSeconds * 1000;
 
-  if (guessTeam) {
-    guessTeam.score += GUESS_TEAM_SCORE;
-    if (speedBonusApplied) {
-      guessTeam.score += SPEED_BONUS_SCORE;
-      bonusText = " + سرعة";
-    }
+  let added = SCORE.correct;
+  player.streak = (player.streak || 0) + 1;
+
+  if (speedBonusApplied) {
+    added += SCORE.speed;
   }
 
-  if (drawTeam) {
-    drawTeam.score += DRAW_TEAM_SCORE;
+  const streakBonusApplied = player.streak >= 2;
+  if (streakBonusApplied) {
+    added += SCORE.streak;
+  }
+
+  if (activeTeam) {
+    activeTeam.score += added;
   }
 
   room.players.forEach((item) => {
-    if (item.id === player.id) {
-      item.streak = (item.streak || 0) + 1;
-    } else if (item.teamId !== room.activeTeamId) {
+    if (item.id !== player.id && item.teamId === room.activeTeamId && item.id !== room.activeDrawerId) {
       item.streak = 0;
     }
   });
@@ -321,21 +474,18 @@ function applyCorrectGuess(roomCode, player, answerText) {
   io.to(roomCode).emit("chat:correct", {
     playerName: player.name,
     answer: answerText || room.activeWord,
-    guessingTeam: guessTeam ? guessTeam.name : "-",
-    bonusText
+    guessingTeam: activeTeam ? activeTeam.name : "-",
+    scoreAdded: added,
+    speedBonusApplied,
+    streakBonusApplied,
+    streak: player.streak
   });
 
-  io.to(roomCode).emit("system:message", {
-    text: player.name + " جاوب صح"
-  });
+  systemMessage(roomCode, `✅ ${player.name} جاوب صح +${SCORE.correct}`, "correct");
+  if (speedBonusApplied) systemMessage(roomCode, `⚡ سرعة +${SCORE.speed}`, "bonus");
+  if (streakBonusApplied) systemMessage(roomCode, `🔥 ستريك +${SCORE.streak}`, "bonus");
 
-  if (speedBonusApplied) {
-    io.to(roomCode).emit("system:message", {
-      text: "⚡ Speed Bonus +1"
-    });
-  }
-
-  if ((player.streak || 0) >= 3) {
+  if (player.streak >= 2) {
     io.to(roomCode).emit("streak:show", {
       playerName: player.name,
       streak: player.streak
@@ -343,10 +493,10 @@ function applyCorrectGuess(roomCode, player, answerText) {
   }
 
   emitRoomState(roomCode);
+  clearRoundTimer(room);
 
-  if (room.roundTimer) {
-    clearTimeout(room.roundTimer);
-    room.roundTimer = null;
+  if (maybeFinishByTargetScore(roomCode)) {
+    return;
   }
 
   setTimeout(() => {
@@ -354,27 +504,48 @@ function applyCorrectGuess(roomCode, player, answerText) {
   }, 1800);
 }
 
+function sanitizeSettings(payload = {}) {
+  const totalRounds = SETTING_OPTIONS.totalRounds.includes(Number(payload.totalRounds))
+    ? Number(payload.totalRounds)
+    : DEFAULT_SETTINGS.totalRounds;
+  const roundSeconds = SETTING_OPTIONS.roundSeconds.includes(Number(payload.roundSeconds))
+    ? Number(payload.roundSeconds)
+    : DEFAULT_SETTINGS.roundSeconds;
+  const targetScore = SETTING_OPTIONS.targetScore.includes(Number(payload.targetScore))
+    ? Number(payload.targetScore)
+    : DEFAULT_SETTINGS.targetScore;
+  const gameMode = SETTING_OPTIONS.gameMode.includes(payload.gameMode)
+    ? payload.gameMode
+    : DEFAULT_SETTINGS.gameMode;
+  return { totalRounds, roundSeconds, targetScore, gameMode };
+}
+
 io.on("connection", (socket) => {
-  socket.on("room:create", (payload) => {
-    const name = payload && payload.name ? payload.name : "هوست";
+  socket.on("room:create", (payload = {}) => {
+    const name = String(payload.name || "هوست").trim().slice(0, 24) || "هوست";
+    const roomName = String(payload.roomName || "غرفة أيام الطيبين").trim().slice(0, 32) || "غرفة أيام الطيبين";
     const maxPlayers = Math.max(2, Math.min(12, Number(payload.maxPlayers) || 6));
     const teamCount = Math.max(2, Math.min(4, Number(payload.teamCount) || 2));
-    const roundSeconds = Math.max(30, Math.min(120, Number(payload.roundSeconds) || DEFAULT_ROUND_SECONDS));
+    const settings = sanitizeSettings(payload.settings || payload);
     const roomCode = createRoomCode();
 
     const room = {
       code: roomCode,
+      name: roomName,
       hostId: socket.id,
       status: "lobby",
       maxPlayers,
       teamCount,
-      roundSeconds,
-      totalRounds: DEFAULT_TOTAL_ROUNDS,
+      settings,
       currentRound: 0,
       activeTeamId: null,
       activeDrawerId: null,
       activeCategory: null,
+      activeSubcategory: null,
       activeWord: null,
+      roundChoices: [],
+      roundOutline: "",
+      roundHint: "",
       roundEndsAt: null,
       roundStartedAt: null,
       roundTimer: null,
@@ -397,12 +568,13 @@ io.on("connection", (socket) => {
     socket.join(roomCode);
 
     socket.emit("room:created", { roomCode });
+    systemMessage(roomCode, `🚪 تم إنشاء الغرفة ${roomName}`, "room");
     emitRoomState(roomCode);
   });
 
-  socket.on("room:join", (payload) => {
-    const roomCode = payload && payload.roomCode ? payload.roomCode : "";
-    const name = payload && payload.name ? payload.name : "لاعب";
+  socket.on("room:join", (payload = {}) => {
+    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+    const name = String(payload.name || "لاعب").trim().slice(0, 24) || "لاعب";
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -430,19 +602,47 @@ io.on("connection", (socket) => {
     });
 
     socket.join(roomCode);
-
-    io.to(roomCode).emit("system:message", {
-      text: name + " دخل الغرفة"
-    });
-
+    systemMessage(roomCode, `👋 ${name} دخل الغرفة`, "join");
     emitRoomState(roomCode);
   });
 
-  socket.on("host:assign-team", (payload) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("room:leave", (payload = {}) => {
+    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+    const room = rooms.get(roomCode);
     if (!room) return;
-    if (room.hostId !== socket.id) return;
-    if (room.status !== "lobby") return;
+    const leavingPlayer = getPlayerById(room, socket.id);
+    if (!leavingPlayer) return;
+
+    room.players = room.players.filter((player) => player.id !== socket.id);
+    socket.leave(roomCode);
+
+    if (!room.players.length) {
+      clearRoundTimer(room);
+      rooms.delete(roomCode);
+      return;
+    }
+
+    if (room.hostId === socket.id) {
+      room.hostId = room.players[0].id;
+      room.players[0].isHost = true;
+    }
+
+    systemMessage(roomCode, `🚪 ${leavingPlayer.name} خرج من الغرفة`, "leave");
+    emitRoomState(roomCode);
+  });
+
+  socket.on("host:update-settings", (payload = {}) => {
+    const room = rooms.get(payload.roomCode);
+    if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
+    room.settings = sanitizeSettings(payload.settings || {});
+    room.name = String(payload.roomName || room.name).trim().slice(0, 32) || room.name;
+    systemMessage(room.code, "⚙️ تم تحديث إعدادات الغرفة", "settings");
+    emitRoomState(room.code);
+  });
+
+  socket.on("host:assign-team", (payload = {}) => {
+    const room = rooms.get(payload.roomCode);
+    if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
 
     const player = room.players.find((item) => item.id === payload.playerId);
     const team = room.teams.find((item) => item.id === payload.teamId);
@@ -452,36 +652,30 @@ io.on("connection", (socket) => {
     emitRoomState(room.code);
   });
 
-  socket.on("room:start", (payload) => {
+  socket.on("room:start", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
-    if (!room) return;
-    if (room.hostId !== socket.id) return;
-    if (room.status !== "lobby") return;
+    if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
+
     if (room.players.length < 2) {
       socket.emit("room:error", { message: "لازم لاعبين على الأقل" });
       return;
     }
 
+    systemMessage(room.code, "📜 تم عرض القوانين وبدأت اللعبة", "start");
     prepareNextRound(room.code);
   });
 
-  socket.on("drawer:choose", (payload) => {
+  socket.on("drawer:choose", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
-    if (!room) return;
-    if (room.status !== "choosing-drawer") return;
+    if (!room || room.status !== "choosing-drawer") return;
 
     const chooser = getPlayerById(room, socket.id);
     if (!chooser) return;
-
-    const canChoose =
-      chooser.teamId === room.chooserTeamId ||
-      room.hostId === socket.id;
-
+    const canChoose = chooser.teamId === room.chooserTeamId || room.hostId === socket.id;
     if (!canChoose) return;
 
     const drawer = getPlayerById(room, payload.playerId);
-    if (!drawer) return;
-    if (drawer.teamId !== room.chooserTeamId) return;
+    if (!drawer || drawer.teamId !== room.chooserTeamId) return;
 
     room.activeDrawerId = drawer.id;
     room.status = "spinning";
@@ -490,43 +684,43 @@ io.on("connection", (socket) => {
 
     io.to(room.code).emit("game:prepareRound", {
       roundNumber: room.currentRound,
-      roomState: {
-        currentRound: room.currentRound,
-        totalRounds: room.totalRounds,
-        activeDrawerId: room.activeDrawerId
-      },
+      roomState: buildRoundPayload(room),
       activeTeamName: activeTeam ? activeTeam.name : "-",
       drawerName: drawer.name
     });
 
+    systemMessage(room.code, `🎯 تم اختيار ${drawer.name} كرسام`, "drawer");
     emitRoomState(room.code);
   });
 
-  socket.on("wheel:spin", (payload) => {
+  socket.on("wheel:spin", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
-    if (!room) return;
-    if (room.status !== "spinning") return;
-    if (room.activeDrawerId !== socket.id) return;
+    if (!room || room.status !== "spinning" || room.activeDrawerId !== socket.id) return;
 
-    const category = CATEGORY_NAMES[Math.floor(Math.random() * CATEGORY_NAMES.length)];
-    const words = WORDS_BY_CATEGORY[category];
-    room.activeCategory = category;
-    room.activeWord = words[Math.floor(Math.random() * words.length)];
+    const result = chooseRoundContent();
+    room.activeCategory = result.category;
+    room.activeSubcategory = result.subcategory;
+    room.activeWord = result.word;
+    room.roundChoices = result.choices;
+    room.roundOutline = result.outline;
+    room.roundHint = result.hint;
 
     io.to(room.code).emit("wheel:result", {
-      category: room.activeCategory
+      category: room.activeCategory,
+      subcategory: room.activeSubcategory,
+      icon: CATEGORY_TREE[result.category].icon
     });
+
+    systemMessage(room.code, `🎡 توقفت العجلة على ${room.activeCategory} / ${room.activeSubcategory}`, "wheel");
 
     setTimeout(() => {
       startRoundAfterWheel(room.code);
-    }, 1500);
+    }, 2200);
   });
 
-  socket.on("draw:move", (payload) => {
+  socket.on("draw:move", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
-    if (!room) return;
-    if (room.status !== "playing") return;
-    if (room.activeDrawerId !== socket.id) return;
+    if (!room || room.status !== "playing" || room.activeDrawerId !== socket.id) return;
 
     socket.to(room.code).emit("draw:move", {
       x1: payload.x1,
@@ -534,27 +728,37 @@ io.on("connection", (socket) => {
       x2: payload.x2,
       y2: payload.y2,
       color: payload.color,
-      lineWidth: payload.lineWidth
+      lineWidth: payload.lineWidth,
+      tool: payload.tool || "pen"
     });
   });
 
-  socket.on("draw:clear", (payload) => {
+  socket.on("draw:clear", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
-    if (!room) return;
-    if (room.activeDrawerId !== socket.id) return;
+    if (!room || room.activeDrawerId !== socket.id) return;
     io.to(room.code).emit("draw:clear");
+    systemMessage(room.code, "🧽 تم مسح اللوحة", "draw");
   });
 
-  socket.on("chat:send", (payload) => {
+  socket.on("chat:send", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
     if (!room || room.status !== "playing") return;
 
     const sender = getPlayerById(room, socket.id);
     if (!sender) return;
-    if (sender.id === room.activeDrawerId) return;
 
     const message = String(payload.text || "").trim();
     if (!message) return;
+
+    if (sender.id === room.activeDrawerId) {
+      socket.emit("room:error", { message: "الرسام ما يقدر يجاوب" });
+      return;
+    }
+
+    if (sender.teamId !== room.activeTeamId) {
+      socket.emit("room:error", { message: "في هالجولة فريق الرسام فقط يجاوب" });
+      return;
+    }
 
     room.lastGuess = {
       playerId: sender.id,
@@ -563,48 +767,47 @@ io.on("connection", (socket) => {
     };
 
     io.to(room.code).emit("chat:message", {
-      playerName: payload.playerName || sender.name,
-      text: message
+      playerName: sender.name,
+      text: message,
+      teamId: sender.teamId,
+      at: Date.now()
     });
+
+    systemMessage(room.code, `💬 ${sender.name} حاول يجاوب`, "guess");
 
     const normalizedInput = normalizeArabic(message);
     const normalizedWord = normalizeArabic(room.activeWord);
 
     if (normalizedInput === normalizedWord) {
       applyCorrectGuess(room.code, sender, message);
+    } else {
+      applyWrongGuess(room, sender);
     }
   });
 
-  socket.on("guess:manual", (payload) => {
+  socket.on("guess:choice", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
     if (!room || room.status !== "playing") return;
 
-    const canJudge =
-      socket.id === room.activeDrawerId ||
-      socket.id === room.hostId;
+    const sender = getPlayerById(room, socket.id);
+    if (!sender || sender.id === room.activeDrawerId || sender.teamId !== room.activeTeamId) return;
 
-    if (!canJudge) return;
-    if (!room.lastGuess) return;
+    const choice = String(payload.choice || "").trim();
+    if (!choice) return;
 
-    const player = getPlayerById(room, room.lastGuess.playerId);
-    if (!player) return;
+    io.to(room.code).emit("chat:message", {
+      playerName: sender.name,
+      text: `اختار: ${choice}`,
+      teamId: sender.teamId,
+      at: Date.now()
+    });
 
-    if (payload.isCorrect) {
-      applyCorrectGuess(room.code, player, room.lastGuess.text);
+    systemMessage(room.code, `🧩 ${sender.name} اختار إجابة`, "guess");
+
+    if (normalizeArabic(choice) === normalizeArabic(room.activeWord)) {
+      applyCorrectGuess(room.code, sender, choice);
     } else {
-      const team = room.teams.find((item) => item.id === player.teamId);
-      if (team) {
-        team.score = Math.max(0, team.score - WRONG_GUESS_PENALTY);
-      }
-
-      player.streak = 0;
-
-      io.to(room.code).emit("system:message", {
-        text: room.lastGuess.playerName + " إجابته خطأ"
-      });
-
-      room.lastGuess = null;
-      emitRoomState(room.code);
+      applyWrongGuess(room, sender);
     }
   });
 
@@ -616,9 +819,7 @@ io.on("connection", (socket) => {
       room.players = room.players.filter((player) => player.id !== socket.id);
 
       if (!room.players.length) {
-        if (room.roundTimer) {
-          clearTimeout(room.roundTimer);
-        }
+        clearRoundTimer(room);
         rooms.delete(roomCode);
         continue;
       }
@@ -628,27 +829,14 @@ io.on("connection", (socket) => {
         room.players[0].isHost = true;
       }
 
-      if (
-        room.activeDrawerId === socket.id &&
-        (room.status === "choosing-drawer" || room.status === "spinning" || room.status === "playing")
-      ) {
-        if (room.roundTimer) {
-          clearTimeout(room.roundTimer);
-          room.roundTimer = null;
-        }
-
-        io.to(roomCode).emit("system:message", {
-          text: "الرسام خرج من الغرفة، تم تجاوز الجولة"
-        });
-
+      if (room.activeDrawerId === socket.id && ["choosing-drawer", "spinning", "playing"].includes(room.status)) {
+        clearRoundTimer(room);
+        systemMessage(roomCode, "🚨 الرسام خرج من الغرفة وتم تجاوز الجولة", "leave");
         prepareNextRound(roomCode);
         continue;
       }
 
-      io.to(roomCode).emit("system:message", {
-        text: leavingPlayer.name + " طلع من الغرفة"
-      });
-
+      systemMessage(roomCode, `🚪 ${leavingPlayer.name} طلع من الغرفة`, "leave");
       emitRoomState(roomCode);
     }
   });
@@ -656,5 +844,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log("Ayam Al-Taybeen server listening on port " + PORT);
+  console.log(`Ayam Al-Taybeen server listening on port ${PORT}`);
 });
