@@ -18,7 +18,10 @@
       --yellow: #ffd84d;
       --green: #22c55e;
       --red: #ef4444;
+      --blue: #38bdf8;
+      --purple: #8b5cf6;
       --shadow: 0 18px 48px rgba(9, 18, 43, 0.25);
+      --dark: #111827;
     }
 
     * { box-sizing: border-box; }
@@ -36,14 +39,14 @@
     body { padding: 16px; }
 
     .app {
-      width: min(1200px, 100%);
+      width: min(1280px, 100%);
       margin: 0 auto;
     }
 
     .screen { display: none; }
     .screen.active { display: block; }
 
-    .hero, .card, .panel, .side-card, .board-wrap {
+    .hero, .card, .panel, .side-card, .board-wrap, .floating-card, .rules-box {
       background: var(--card);
       border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
@@ -153,16 +156,25 @@
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     }
 
+    .grid-4 {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
     .card, .panel, .side-card {
       padding: 18px;
     }
 
-    h2, h3 {
+    h2, h3, h4 {
       margin: 0 0 14px;
     }
 
     .muted {
       color: var(--muted);
+    }
+
+    .tiny {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
     }
 
     .field { margin-bottom: 12px; }
@@ -174,12 +186,12 @@
       font-size: 14px;
     }
 
-    input, select, button {
+    input, select, button, textarea {
       font-family: inherit;
       font-size: 16px;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       border: none;
       outline: none;
@@ -187,6 +199,11 @@
       padding: 14px 16px;
       background: rgba(255,255,255,0.92);
       color: #152245;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
     }
 
     button {
@@ -237,6 +254,14 @@
       color: #fff;
     }
 
+    .btn-blue {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #67e8f9, #38bdf8);
+      color: #0b2743;
+      font-weight: bold;
+    }
+
     .error {
       min-height: 24px;
       margin-top: 8px;
@@ -260,12 +285,22 @@
       align-items: center;
     }
 
+    .row.stretch > * {
+      flex: 1;
+    }
+
     .pill {
       background: rgba(255,255,255,0.14);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 999px;
       padding: 10px 14px;
       font-size: 14px;
+    }
+
+    .pill.highlight {
+      background: rgba(255,216,77,0.18);
+      border-color: rgba(255,216,77,0.28);
+      color: #fff8d6;
     }
 
     .room-link {
@@ -277,12 +312,12 @@
       line-height: 1.8;
     }
 
-    .players-list, .teams-list, .score-list, .final-scores, .drawer-list {
+    .players-list, .teams-list, .score-list, .final-scores, .drawer-list, .steps-list, .rules-list, .choice-list {
       display: grid;
       gap: 10px;
     }
 
-    .player-item, .team-item, .score-item, .drawer-item {
+    .player-item, .team-item, .score-item, .drawer-item, .step-item, .rule-item, .choice-item {
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: 18px;
@@ -290,15 +325,56 @@
       text-align: right;
     }
 
-    .team-badge {
+    .team-badge, .role-badge, .mode-badge {
       display: inline-block;
       margin-top: 8px;
       border-radius: 999px;
       padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .team-badge {
       background: rgba(255,216,77,0.18);
       border: 1px solid rgba(255,216,77,0.24);
       color: #fff8d6;
-      font-size: 13px;
+    }
+
+    .role-badge.drawer {
+      background: rgba(34,197,94,0.18);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: #d8ffe5;
+    }
+
+    .role-badge.guesser {
+      background: rgba(56,189,248,0.18);
+      border: 1px solid rgba(56,189,248,0.25);
+      color: #dff7ff;
+    }
+
+    .mode-badge {
+      background: rgba(139,92,246,0.18);
+      border: 1px solid rgba(139,92,246,0.25);
+      color: #f2e9ff;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .lobby-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .meta-box {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 18px;
+      padding: 14px;
     }
 
     .game-layout {
@@ -311,9 +387,18 @@
       padding: 18px;
     }
 
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
     #board {
       width: 100%;
-      height: min(66vh, 680px);
+      height: min(62vh, 680px);
       background: #ffffff;
       border-radius: 22px;
       display: block;
@@ -348,11 +433,25 @@
       transform: scale(1.06);
     }
 
+    .size-wrap {
+      min-width: 160px;
+      flex: 1;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #ffd84d;
+      padding: 0;
+      background: transparent;
+    }
+
     .side-card {
       margin-bottom: 18px;
     }
 
-    .wheel-box { text-align: center; }
+    .wheel-box {
+      text-align: center;
+    }
 
     .pointer {
       font-size: 30px;
@@ -376,10 +475,30 @@
       border-radius: 18px;
       background: rgba(255,216,77,0.18);
       border: 1px solid rgba(255,216,77,0.28);
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .outline-box, .hint-box {
+      margin-top: 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .choice-list {
+      margin-top: 12px;
+    }
+
+    .choice-item button {
+      width: 100%;
+      text-align: right;
     }
 
     .chat-box {
-      height: 250px;
+      height: 260px;
       overflow-y: auto;
       background: rgba(255,255,255,0.92);
       color: #152245;
@@ -409,7 +528,90 @@
       border-color: #b7e4c0;
     }
 
-    .drawer-picker { display: none; }
+    .chat-item.wrong {
+      background: #fff1f2;
+      color: #991b1b;
+      border-color: #fecdd3;
+    }
+
+    .drawer-picker,
+    .rules-screen,
+    .floating-layer {
+      display: none;
+    }
+
+    .rules-screen.active,
+    .floating-layer.active {
+      display: flex;
+    }
+
+    .rules-screen,
+    .floating-layer {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 15, 35, 0.58);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .rules-box, .floating-card {
+      width: min(760px, 100%);
+      padding: 22px;
+    }
+
+    .rules-list {
+      margin: 14px 0 18px;
+    }
+
+    .step-flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .step-item {
+      text-align: center;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .step-item.active {
+      background: rgba(255,216,77,0.18);
+      border-color: rgba(255,216,77,0.28);
+      color: #fff8d6;
+      font-weight: bold;
+    }
+
+    .score-item .score-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .score-item .score-total {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .score-members {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .member-pill {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
 
     .results-title {
       text-align: center;
@@ -435,32 +637,93 @@
       color: #fff;
       padding: 14px 18px;
       border-radius: 18px;
-      z-index: 1000;
+      z-index: 1200;
       font-weight: bold;
       box-shadow: 0 14px 28px rgba(0,0,0,0.22);
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 980px) {
       .hero-grid, .game-layout {
         grid-template-columns: 1fr;
       }
+
+      .step-flow {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
       #board {
-        height: 54vh;
+        height: 52vh;
       }
     }
 
     @media (max-width: 640px) {
       body { padding: 10px; }
-      .hero, .card, .panel, .side-card, .board-wrap { border-radius: 22px; }
-      #board { height: 46vh; }
+      .hero, .card, .panel, .side-card, .board-wrap, .rules-box, .floating-card { border-radius: 22px; }
+      #board { height: 42vh; }
       .topbar { flex-direction: column; align-items: stretch; }
       .row { width: 100%; }
       .row > * { flex: 1; }
+      .step-flow {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .hero p {
+        line-height: 1.8;
+      }
+      .chat-box {
+        height: 220px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="streak-box" id="streakBox"></div>
+
+  <div class="rules-screen" id="rulesOverlay">
+    <div class="rules-box">
+      <h2>قوانين اللعبة 📜</h2>
+      <p class="muted">
+        قبل ما تبدأون، اتفقوا على الإعدادات وخلو اللعب نظيف وواضح.
+      </p>
+
+      <div class="rules-list">
+        <div class="rule-item">1) الفريق اللي عليه الدور هو نفسه الفريق اللي <strong>يخمن</strong>.</div>
+        <div class="rule-item">2) الرسام نفسه <strong>ممنوع يجاوب</strong>.</div>
+        <div class="rule-item">3) الفريق الثاني <strong>ما له حق الإجابة</strong> في هذي الجولة.</div>
+        <div class="rule-item">4) تنتهي اللعبة إذا فريق وصل هدف النقاط أو انتهت كل الجولات.</div>
+        <div class="rule-item">5) الرسم يكون بدون كتابة الكلمة أو الحروف مباشرة.</div>
+        <div class="rule-item">6) الشات مو بس رسائل، فيه أحداث اللعبة والنقاط والتنبيهات.</div>
+      </div>
+
+      <div class="step-flow" id="stepFlowRules">
+        <div class="step-item active">1. غرفة</div>
+        <div class="step-item">2. اختيار رسام</div>
+        <div class="step-item">3. عجلة</div>
+        <div class="step-item">4. كلمة</div>
+        <div class="step-item">5. رسم</div>
+        <div class="step-item">6. شات</div>
+      </div>
+
+      <div class="row" style="margin-top:18px;">
+        <button class="btn-soft" onclick="closeRules()">إغلاق</button>
+        <button class="btn-primary" onclick="acceptRulesAndStart()">فهمت، ابدأ اللعبة</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-layer" id="leaveOverlay">
+    <div class="floating-card">
+      <h3>تأكيد الخروج</h3>
+      <p class="muted">إذا ضغطتي خروج راح ترجعين للرئيسية.</p>
+      <div class="row">
+        <button class="btn-soft" onclick="closeLeaveConfirm()">إلغاء</button>
+        <button class="btn-danger" onclick="goHome()">خروج</button>
+      </div>
+    </div>
+  </div>
 
   <div class="app">
     <section id="homeScreen" class="screen active">
@@ -469,16 +732,16 @@
           <div>
             <h1>لعبة أيام الطيبين 🎨</h1>
             <p>
-              لعبة رسم جماعية بستايل تطبيق، فيها غرف، فرق، عجلة فئات، اختيار الرسام،
-              شات للتخمين، نقاط، ستريك، بونص سرعة، وحفظ الرسمة.
+              لعبة رسم جماعية بستايل تطبيق، فيها غرف، فرق، اختيار رسام، عجلة حقيقية،
+              كلمة سرية، شات للتخمين، نقاط، ستريك، بونص سرعة، اختيارات، وواجهة أوضح للموبايل.
             </p>
             <div class="tags">
-              <div class="tag">اختيار الرسام</div>
-              <div class="tag">عجلة فئات</div>
-              <div class="tag">شات وتخمين</div>
-              <div class="tag">Speed Bonus</div>
-              <div class="tag">Streak</div>
-              <div class="tag">Voice</div>
+              <div class="tag">🏠 غرفة</div>
+              <div class="tag">🎯 اختيار رسام</div>
+              <div class="tag">🎡 عجلة</div>
+              <div class="tag">🔐 كلمة للرسام</div>
+              <div class="tag">🎨 رسم</div>
+              <div class="tag">💬 شات</div>
             </div>
           </div>
 
@@ -487,7 +750,7 @@
             <div class="phone-screen">
               <div class="muted">Game On!</div>
               <div class="phone-card">
-                <div class="muted">الكلمة السرية</div>
+                <div class="muted">أنت رسام</div>
                 <strong>فطر</strong>
                 <div class="muted">الفئة: أكل</div>
               </div>
@@ -507,33 +770,71 @@
           </div>
 
           <div class="field">
-            <label for="maxPlayers">عدد اللاعبين</label>
-            <select id="maxPlayers">
-              <option value="4">4 لاعبين</option>
-              <option value="6" selected>6 لاعبين</option>
-              <option value="8">8 لاعبين</option>
-              <option value="10">10 لاعبين</option>
-              <option value="12">12 لاعبين</option>
-            </select>
+            <label for="roomName">اسم الغرفة</label>
+            <input id="roomName" placeholder="مثال: سهرة الخميس" />
           </div>
 
-          <div class="field">
-            <label for="teamCount">عدد الفرق</label>
-            <select id="teamCount">
-              <option value="2" selected>فريقين</option>
-              <option value="3">3 فرق</option>
-              <option value="4">4 فرق</option>
-            </select>
+          <div class="settings-grid">
+            <div class="field">
+              <label for="maxPlayers">أقصى عدد لاعبين</label>
+              <select id="maxPlayers">
+                <option value="4">4</option>
+                <option value="6" selected>6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="teamCount">عدد الفرق</label>
+              <select id="teamCount">
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="totalRounds">عدد الجولات</label>
+              <select id="totalRounds">
+                <option value="8">8</option>
+                <option value="10" selected>10</option>
+                <option value="12">12</option>
+                <option value="15">15</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="roundSeconds">مدة الجولة</label>
+              <select id="roundSeconds">
+                <option value="40">40</option>
+                <option value="45" selected>45</option>
+                <option value="60">60</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="targetScore">هدف النقاط</label>
+              <select id="targetScore">
+                <option value="25">25</option>
+                <option value="35" selected>35</option>
+                <option value="40">40</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="gameMode">وضع اللعب</label>
+              <select id="gameMode">
+                <option value="text">✏️ كتابة</option>
+                <option value="choices">🧩 اختيارات</option>
+                <option value="mixed" selected>🧠 الاثنين</option>
+              </select>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="roundSeconds">وقت الجولة</label>
-            <select id="roundSeconds">
-              <option value="30">30 ثانية</option>
-              <option value="60" selected>60 ثانية</option>
-              <option value="90">90 ثانية</option>
-              <option value="120">120 ثانية</option>
-            </select>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn-soft" type="button" onclick="openRules()">قوانين اللعبة</button>
           </div>
 
           <button class="btn-primary" onclick="createRoom()">إنشاء الغرفة</button>
@@ -554,6 +855,18 @@
           </div>
 
           <button class="btn-primary" onclick="joinRoom()">دخول الغرفة</button>
+
+          <div style="margin-top:18px;">
+            <h3>التدفق</h3>
+            <div class="steps-list">
+              <div class="step-item">1) غرفة</div>
+              <div class="step-item">2) اختيار رسام</div>
+              <div class="step-item">3) عجلة</div>
+              <div class="step-item">4) كلمة</div>
+              <div class="step-item">5) رسم</div>
+              <div class="step-item">6) شات</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -562,17 +875,39 @@
       <div class="card">
         <div class="topbar">
           <div class="row">
-            <span class="pill" id="roomCodeText">الغرفة: -</span>
+            <span class="pill highlight" id="roomCodeText">الغرفة: -</span>
+            <span class="pill" id="roomNameText">اسم الغرفة: -</span>
             <span class="pill" id="roundTimeText">وقت الجولة: -</span>
           </div>
           <div class="row">
             <button class="btn-soft" onclick="copyRoomCode()">نسخ الكود</button>
             <button class="btn-soft" onclick="copyRoomLink()">نسخ الرابط</button>
-            <button class="btn-primary" id="startGameBtn" onclick="startGame()">ابدأ اللعبة</button>
+            <button class="btn-soft" onclick="openRules()">قوانين اللعبة</button>
+            <button class="btn-danger" onclick="openLeaveConfirm()">خروج</button>
+            <button class="btn-primary" id="startGameBtn" onclick="openRulesBeforeStart()">ابدأ اللعبة</button>
           </div>
         </div>
 
         <div class="room-link" id="roomLinkText">-</div>
+
+        <div class="lobby-meta">
+          <div class="meta-box">
+            <strong>الجولات</strong>
+            <div id="metaRounds">-</div>
+          </div>
+          <div class="meta-box">
+            <strong>هدف النقاط</strong>
+            <div id="metaTargetScore">-</div>
+          </div>
+          <div class="meta-box">
+            <strong>وضع اللعب</strong>
+            <div id="metaGameMode">-</div>
+          </div>
+          <div class="meta-box">
+            <strong>عدد الفرق</strong>
+            <div id="metaTeamCount">-</div>
+          </div>
+        </div>
 
         <div class="grid grid-3" style="margin-top:18px;">
           <div class="card" style="margin:0;">
@@ -589,6 +924,7 @@
             <h3>معلومات</h3>
             <p class="muted">الهوست يقدر يوزع اللاعبين على الفرق قبل البداية.</p>
             <p class="muted">الفريق اللي عليه الدور يختار الرسام.</p>
+            <p class="muted">الفريق اللي يرسم هو نفسه الفريق اللي يجاوب، والرسام نفسه ممنوع يجاوب.</p>
           </div>
         </div>
       </div>
@@ -601,24 +937,54 @@
           <span class="pill" id="activeTeamText">-</span>
           <span class="pill" id="categoryText">-</span>
           <span class="pill" id="timerText">-</span>
+          <span class="pill" id="roomMiniNameText">-</span>
         </div>
         <div class="row">
-          <span class="pill" id="statusText">-</span>
+          <span class="pill highlight" id="statusText">-</span>
+          <button class="btn-soft" onclick="openRules()">القوانين</button>
+          <button class="btn-danger" onclick="openLeaveConfirm()">خروج</button>
         </div>
       </div>
 
+      <div class="step-flow" id="stepFlowGame" style="margin-bottom:16px;">
+        <div class="step-item" data-step="room">1. غرفة</div>
+        <div class="step-item" data-step="drawer">2. اختيار رسام</div>
+        <div class="step-item" data-step="wheel">3. عجلة</div>
+        <div class="step-item" data-step="word">4. كلمة</div>
+        <div class="step-item" data-step="draw">5. رسم</div>
+        <div class="step-item" data-step="chat">6. شات</div>
+      </div>
+
       <div class="drawer-picker card" id="drawerPickerCard">
-        <h3>اختيار الرسام</h3>
+        <h3>اختيار الرسام 🎯</h3>
         <div id="drawerPickerTitle" class="muted" style="margin-bottom:10px;"></div>
         <div id="drawerList" class="drawer-list"></div>
       </div>
 
       <div class="game-layout">
         <div class="board-wrap">
+          <div class="board-header">
+            <div>
+              <h3 style="margin:0 0 6px;">🎨 لوحة الرسم</h3>
+              <div class="tiny">الرسم → تخمين فريقك → نقاط</div>
+            </div>
+            <div class="row">
+              <span class="role-badge drawer hidden" id="roleDrawerBadge">أنت رسام</span>
+              <span class="role-badge guesser hidden" id="roleGuesserBadge">أنت مخمن</span>
+              <span class="mode-badge" id="modeBadge">الوضع: -</span>
+            </div>
+          </div>
+
           <canvas id="board" width="1200" height="780"></canvas>
 
           <div class="tools">
             <div id="palette" class="palette"></div>
+
+            <div class="size-wrap">
+              <label for="brushSize" style="margin-bottom:6px;">حجم الفرشاة: <span id="brushSizeValue">5</span></label>
+              <input id="brushSize" type="range" min="2" max="26" value="5" />
+            </div>
+
             <button class="btn-soft" onclick="setBrushMode('draw')">رسم</button>
             <button class="btn-soft" onclick="setBrushMode('erase')">ممحاة</button>
             <button class="btn-danger" onclick="clearBoard()">مسح اللوحة</button>
@@ -636,14 +1002,17 @@
           </div>
 
           <div class="side-card">
-            <h3>الكلمة</h3>
+            <h3>الكلمة / التلميح 🔐</h3>
             <div id="wordText" class="word-display">الكلمة: -</div>
+            <div id="outlineBox" class="outline-box hidden">الهيكل: -</div>
+            <div id="hintBox" class="hint-box hidden">تلميح بسيط: -</div>
+            <div id="choicesWrap" class="choice-list hidden"></div>
           </div>
 
           <div class="side-card">
-            <h3>الشات</h3>
+            <h3>الشات والأحداث 💬</h3>
             <div id="chatBox" class="chat-box"></div>
-            <div class="row" style="margin-top:12px;">
+            <div class="row stretch" style="margin-top:12px;">
               <input id="chatInput" placeholder="اكتب تخمينك..." />
               <button class="btn-primary" onclick="sendChat()">إرسال</button>
               <button class="btn-secondary" onclick="startVoiceGuess()">🎤</button>
@@ -655,7 +1024,7 @@
           </div>
 
           <div class="side-card">
-            <h3>النقاط الحالية</h3>
+            <h3>الـ Scoreboard 📊</h3>
             <div id="scoreList" class="score-list"></div>
           </div>
         </div>
@@ -690,10 +1059,15 @@
       { name: "وسائل نقل", icon: "🚗", color: "#fca5a5" },
       { name: "كرتون", icon: "🦸", color: "#67e8f9" },
       { name: "طبيعة", icon: "🌿", color: "#bef264" },
+      { name: "أعلام", icon: "🏳️", color: "#fbcfe8" },
+      { name: "مسلسلات", icon: "📺", color: "#ddd6fe" },
       { name: "أفلام ومسلسلات", icon: "🎬", color: "#ddd6fe" }
     ];
 
-    const COLORS = ["#111111", "#2563eb", "#ef4444", "#16a34a", "#f59e0b", "#9333ea", "#0f766e", "#ffffff"];
+    const COLORS = [
+      "#111111", "#2563eb", "#ef4444", "#16a34a", "#f59e0b", "#9333ea",
+      "#0f766e", "#e11d48", "#f97316", "#14b8a6", "#64748b", "#ffffff"
+    ];
 
     let playerName = "";
     let roomCode = "";
@@ -706,6 +1080,12 @@
     let lastPoint = null;
     let roundTimer = null;
     let wheelRotation = 0;
+    let brushSize = 5;
+    let pendingStartAfterRules = false;
+    let currentOutline = "";
+    let currentHint = "";
+    let currentChoices = [];
+    let currentMode = "mixed";
 
     const homeScreen = document.getElementById("homeScreen");
     const lobbyScreen = document.getElementById("lobbyScreen");
@@ -714,6 +1094,8 @@
 
     const homeError = document.getElementById("homeError");
     const roomCodeText = document.getElementById("roomCodeText");
+    const roomNameText = document.getElementById("roomNameText");
+    const roomMiniNameText = document.getElementById("roomMiniNameText");
     const roomLinkText = document.getElementById("roomLinkText");
     const roundTimeText = document.getElementById("roundTimeText");
 
@@ -739,6 +1121,20 @@
     const drawerPickerTitle = document.getElementById("drawerPickerTitle");
     const drawerList = document.getElementById("drawerList");
     const palette = document.getElementById("palette");
+    const roleDrawerBadge = document.getElementById("roleDrawerBadge");
+    const roleGuesserBadge = document.getElementById("roleGuesserBadge");
+    const modeBadge = document.getElementById("modeBadge");
+    const metaRounds = document.getElementById("metaRounds");
+    const metaTargetScore = document.getElementById("metaTargetScore");
+    const metaGameMode = document.getElementById("metaGameMode");
+    const metaTeamCount = document.getElementById("metaTeamCount");
+    const rulesOverlay = document.getElementById("rulesOverlay");
+    const leaveOverlay = document.getElementById("leaveOverlay");
+    const outlineBox = document.getElementById("outlineBox");
+    const hintBox = document.getElementById("hintBox");
+    const choicesWrap = document.getElementById("choicesWrap");
+    const brushSizeInput = document.getElementById("brushSize");
+    const brushSizeValue = document.getElementById("brushSizeValue");
 
     const canvas = document.getElementById("board");
     const ctx = canvas.getContext("2d");
@@ -752,6 +1148,37 @@
       screen.classList.add("active");
     }
 
+    function openRules() {
+      rulesOverlay.classList.add("active");
+      pendingStartAfterRules = false;
+    }
+
+    function openRulesBeforeStart() {
+      pendingStartAfterRules = true;
+      rulesOverlay.classList.add("active");
+    }
+
+    function closeRules() {
+      rulesOverlay.classList.remove("active");
+      pendingStartAfterRules = false;
+    }
+
+    function acceptRulesAndStart() {
+      rulesOverlay.classList.remove("active");
+      if (pendingStartAfterRules) {
+        pendingStartAfterRules = false;
+        startGame();
+      }
+    }
+
+    function openLeaveConfirm() {
+      leaveOverlay.classList.add("active");
+    }
+
+    function closeLeaveConfirm() {
+      leaveOverlay.classList.remove("active");
+    }
+
     function showStreak(playerNameValue, streakValue) {
       streakBox.innerText = "🔥 " + streakValue + " Streak - " + playerNameValue;
       streakBox.style.display = "block";
@@ -760,14 +1187,93 @@
       }, 2200);
     }
 
-    function appendChat(text, type = false, correct = false) {
+    function appendChat(text, type = false, correct = false, wrong = false) {
       const div = document.createElement("div");
       div.className = "chat-item";
       if (type) div.classList.add("system");
       if (correct) div.classList.add("correct");
+      if (wrong) div.classList.add("wrong");
       div.innerText = text;
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function modeLabel(mode) {
+      if (mode === "text") return "✏️ كتابة";
+      if (mode === "choices") return "🧩 اختيارات";
+      return "🧠 الاثنين";
+    }
+
+    function getMyPlayer() {
+      if (!currentRoomState || !Array.isArray(currentRoomState.players)) return null;
+      return currentRoomState.players.find((player) => player.id === mySocketId) || null;
+    }
+
+    function getActiveTeam() {
+      if (!currentRoomState || !Array.isArray(currentRoomState.teams)) return null;
+      return currentRoomState.teams.find((item) => item.id === currentRoomState.activeTeamId) || null;
+    }
+
+    function updateRoleBadges() {
+      roleDrawerBadge.classList.add("hidden");
+      roleGuesserBadge.classList.add("hidden");
+
+      if (!currentRoomState || currentRoomState.status !== "playing") return;
+
+      const myPlayer = getMyPlayer();
+      if (!myPlayer) return;
+
+      if (mySocketId === currentDrawerId) {
+        roleDrawerBadge.classList.remove("hidden");
+        return;
+      }
+
+      if (myPlayer.teamId === currentRoomState.activeTeamId) {
+        roleGuesserBadge.classList.remove("hidden");
+      }
+    }
+
+    function setActiveStep(step) {
+      document.querySelectorAll("#stepFlowGame .step-item").forEach((item) => {
+        item.classList.remove("active");
+        if (item.dataset.step === step) {
+          item.classList.add("active");
+        }
+      });
+    }
+
+    function buildOutline(word) {
+      if (!word) return "";
+      return word
+        .split(" ")
+        .map((part) => "_ ".repeat(part.length).trim())
+        .join("   /   ");
+    }
+
+    function renderChoices(choices) {
+      choicesWrap.innerHTML = "";
+      if (!choices || !choices.length) {
+        choicesWrap.classList.add("hidden");
+        return;
+      }
+
+      choicesWrap.classList.remove("hidden");
+
+      choices.forEach((choice) => {
+        const div = document.createElement("div");
+        div.className = "choice-item";
+        div.innerHTML = "<button class='btn-soft' onclick=\"pickChoice('" + escapeChoice(choice) + "')\">" + choice + "</button>";
+        choicesWrap.appendChild(div);
+      });
+    }
+
+    function escapeChoice(text) {
+      return String(text).replace(/'/g, "\\'");
+    }
+
+    function pickChoice(choice) {
+      chatInput.value = choice;
+      sendChat();
     }
 
     function renderPlayers(players, teams) {
@@ -778,11 +1284,15 @@
         const div = document.createElement("div");
         div.className = "player-item";
 
+        let roleText = player.id === currentDrawerId ? "<span class='role-badge drawer'>رسام</span>" : "";
+        let streakText = "<div class='muted'>Streak: " + (player.streak || 0) + "</div>";
+
         let html = "";
         html += "<strong>" + player.name + "</strong>";
         html += "<div class='muted'>" + (player.isHost ? "هوست" : "لاعب") + "</div>";
-        html += "<div class='muted'>Streak: " + (player.streak || 0) + "</div>";
+        html += streakText;
         html += "<div class='team-badge'>" + (team ? team.name : "-") + "</div>";
+        html += roleText;
 
         if (currentRoomState && currentRoomState.hostId === mySocketId && currentRoomState.status === "lobby") {
           html += "<div class='row' style='margin-top:8px; gap:6px;'>";
@@ -812,11 +1322,26 @@
       });
     }
 
-    function renderScores(teams) {
+    function renderScores(teams, players = []) {
       scoreList.innerHTML = "";
       finalScores.innerHTML = "";
+
       teams.forEach((team) => {
-        const html = "<div class='score-item'><strong>" + team.name + "</strong> - " + team.score + " نقطة</div>";
+        const members = players.filter((item) => item.teamId === team.id);
+        const membersHtml = members.map((member) => {
+          return "<span class='member-pill'>" + member.name + " 🔥" + (member.streak || 0) + "</span>";
+        }).join("");
+
+        const html =
+          "<div class='score-item'>" +
+            "<div class='score-top'>" +
+              "<strong>" + team.name + "</strong>" +
+              "<div class='score-total'>" + team.score + "</div>" +
+            "</div>" +
+            "<div class='muted'>مجموع نقاط الفريق</div>" +
+            "<div class='score-members'>" + (membersHtml || "<span class='member-pill'>لا يوجد</span>") + "</div>" +
+          "</div>";
+
         scoreList.innerHTML += html;
         finalScores.innerHTML += html;
       });
@@ -859,6 +1384,7 @@
         div.className = "drawer-item";
         div.innerHTML =
           "<strong>" + player.name + "</strong>" +
+          "<div class='muted'>Streak: " + (player.streak || 0) + "</div>" +
           "<div class='row' style='margin-top:10px;'>" +
           "<button class='btn-primary' onclick=\"chooseDrawer('" + player.id + "')\">اختيار هذا اللاعب</button>" +
           "</div>";
@@ -883,9 +1409,13 @@
 
       socket.emit("room:create", {
         name: playerName,
+        roomName: document.getElementById("roomName").value.trim() || "غرفة أيام الطيبين",
         maxPlayers: Number(document.getElementById("maxPlayers").value),
         teamCount: Number(document.getElementById("teamCount").value),
-        roundSeconds: Number(document.getElementById("roundSeconds").value)
+        totalRounds: Number(document.getElementById("totalRounds").value),
+        roundSeconds: Number(document.getElementById("roundSeconds").value),
+        targetScore: Number(document.getElementById("targetScore").value),
+        gameMode: document.getElementById("gameMode").value
       });
     }
 
@@ -967,10 +1497,10 @@
         wheelCtx.rotate(start + anglePer / 2);
         wheelCtx.textAlign = "center";
         wheelCtx.fillStyle = "#1d2552";
-        wheelCtx.font = "bold 22px Arial";
-        wheelCtx.fillText(item.icon, radius - 42, 0);
-        wheelCtx.font = "14px Arial";
-        wheelCtx.fillText(item.name, radius - 92, 0);
+        wheelCtx.font = "bold 20px Arial";
+        wheelCtx.fillText(item.icon, radius - 38, 0);
+        wheelCtx.font = "13px Arial";
+        wheelCtx.fillText(item.name, radius - 90, 0);
         wheelCtx.restore();
       });
 
@@ -1062,7 +1592,7 @@
 
       const point = getCanvasPos(e);
       const color = brushMode === "erase" ? "#ffffff" : currentColor;
-      const lineWidth = brushMode === "erase" ? 22 : 5;
+      const lineWidth = brushMode === "erase" ? Math.max(brushSize + 10, 16) : brushSize;
 
       drawSegment(lastPoint.x, lastPoint.y, point.x, point.y, color, lineWidth);
 
@@ -1140,6 +1670,57 @@
       window.location.href = window.location.origin;
     }
 
+    function updateLobbyMeta(state) {
+      roomNameText.innerText = "اسم الغرفة: " + (state.roomName || "غرفة أيام الطيبين");
+      roomMiniNameText.innerText = state.roomName || "غرفة أيام الطيبين";
+      roundTimeText.innerText = "وقت الجولة: " + state.roundSeconds + " ثانية";
+      metaRounds.innerText = state.totalRounds + " جولة";
+      metaTargetScore.innerText = (state.targetScore || "-") + " نقطة";
+      metaGameMode.innerText = modeLabel(state.gameMode || "mixed");
+      metaTeamCount.innerText = state.teamCount + " فرق";
+      modeBadge.innerText = "الوضع: " + modeLabel(state.gameMode || "mixed");
+    }
+
+    function updateWordUiForViewer() {
+      const myPlayer = getMyPlayer();
+      const isDrawer = mySocketId === currentDrawerId;
+      const isActiveTeamGuesser =
+        currentRoomState &&
+        myPlayer &&
+        myPlayer.teamId === currentRoomState.activeTeamId &&
+        !isDrawer;
+
+      const stateMode = currentRoomState && currentRoomState.gameMode ? currentRoomState.gameMode : currentMode;
+
+      outlineBox.classList.add("hidden");
+      hintBox.classList.add("hidden");
+      choicesWrap.classList.add("hidden");
+
+      if (isDrawer) {
+        if (currentOutline) {
+          outlineBox.innerText = "هيكل الكلمة: " + currentOutline;
+          outlineBox.classList.remove("hidden");
+        }
+        if (currentHint) {
+          hintBox.innerText = "تلميح بسيط: " + currentHint;
+          hintBox.classList.remove("hidden");
+        }
+        if ((stateMode === "choices" || stateMode === "mixed") && currentChoices.length) {
+          renderChoices(currentChoices);
+        }
+      } else if (isActiveTeamGuesser) {
+        if ((stateMode === "choices" || stateMode === "mixed") && currentChoices.length) {
+          renderChoices(currentChoices);
+        }
+        if (currentOutline && stateMode === "mixed") {
+          outlineBox.innerText = "هيكل تقريبي: " + currentOutline;
+          outlineBox.classList.remove("hidden");
+        }
+      } else {
+        renderChoices([]);
+      }
+    }
+
     socket.on("connect", () => {
       mySocketId = socket.id;
     });
@@ -1160,21 +1741,25 @@
     socket.on("room:state", (state) => {
       currentRoomState = state;
       roomCode = state.code;
+      currentMode = state.gameMode || currentMode;
 
       roomCodeText.innerText = "الغرفة: " + state.code;
-      roundTimeText.innerText = "وقت الجولة: " + state.roundSeconds + " ثانية";
       roomLinkText.innerText = window.location.origin + "?room=" + state.code;
 
+      updateLobbyMeta(state);
       renderPlayers(state.players, state.teams);
       renderTeams(state.teams, state.players);
-      renderScores(state.teams);
+      renderScores(state.teams, state.players);
       updateManualGuessControls();
       updateDrawerPicker();
+      updateRoleBadges();
+      updateWordUiForViewer();
 
       startGameBtn.style.display = state.hostId === mySocketId && state.status === "lobby" ? "block" : "inline-block";
 
       if (state.status === "lobby") {
         showScreen(lobbyScreen);
+        setActiveStep("room");
       }
 
       if (state.status === "choosing-drawer" || state.status === "spinning" || state.status === "playing") {
@@ -1196,24 +1781,36 @@
     });
 
     socket.on("game:chooseDrawer", (payload) => {
-      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 15);
+      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
       activeTeamText.innerText = payload.activeTeamName || "-";
       statusText.innerText = "اختيار الرسام";
       wordText.innerText = "الكلمة: -";
       categoryText.innerText = "-";
       spinBtn.disabled = true;
+      currentOutline = "";
+      currentHint = "";
+      currentChoices = [];
+      renderChoices([]);
       updateDrawerPicker();
+      updateWordUiForViewer();
+      setActiveStep("drawer");
+      appendChat("🎯 الآن اختيار الرسام للفريق: " + (payload.activeTeamName || "-"), true, false);
     });
 
     socket.on("game:prepareRound", (payload) => {
       currentDrawerId = payload.roomState.activeDrawerId;
-      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 15);
+      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
       activeTeamText.innerText = payload.activeTeamName || "-";
       categoryText.innerText = "-";
       wordText.innerText = "الكلمة: -";
       clearLocalBoard();
       showScreen(gameScreen);
       updateDrawerPicker();
+
+      currentOutline = "";
+      currentHint = "";
+      currentChoices = [];
+      renderChoices([]);
 
       if (mySocketId === currentDrawerId) {
         statusText.innerText = "أنت الرسام الآن - لف العجلة";
@@ -1224,46 +1821,99 @@
       }
 
       updateManualGuessControls();
+      updateRoleBadges();
+      updateWordUiForViewer();
+      setActiveStep("wheel");
+      appendChat("🎡 تم اختيار الرسام: " + payload.drawerName, true, false);
     });
 
     socket.on("wheel:result", (payload) => {
       categoryText.innerText = payload.category;
       spinToCategory(payload.category);
+      setActiveStep("wheel");
+      appendChat("🎡 توقفت العجلة على: " + payload.category, true, false);
     });
 
     socket.on("game:roundStarted", (payload) => {
       currentDrawerId = payload.roomState.activeDrawerId;
       roundText.innerText = payload.roomState.currentRound + " / " + payload.roomState.totalRounds;
       categoryText.innerText = payload.category || "-";
+      currentMode = (payload.roomState && payload.roomState.gameMode) || (currentRoomState && currentRoomState.gameMode) || currentMode;
+      modeBadge.innerText = "الوضع: " + modeLabel(currentMode);
 
       if (mySocketId === currentDrawerId) {
         statusText.innerText = "أنت ترسم الآن";
       } else {
-        statusText.innerText = payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
+        const myPlayer = getMyPlayer();
+        const amAllowedGuesser = myPlayer && currentRoomState && myPlayer.teamId === currentRoomState.activeTeamId;
+        statusText.innerText = amAllowedGuesser
+          ? "أنت مخمن الآن"
+          : payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
       }
 
       spinBtn.disabled = true;
       startLocalTimer(payload.roomState.roundEndsAt);
       updateManualGuessControls();
       updateDrawerPicker();
+      updateRoleBadges();
+      updateWordUiForViewer();
+      setActiveStep("draw");
+      appendChat("🎨 بدأت الجولة - الفئة: " + (payload.category || "-"), true, false);
     });
 
     socket.on("game:wordForDrawer", (payload) => {
-      wordText.innerText = "الكلمة: " + payload.word;
+      const word = payload.word || "-";
+      currentOutline = payload.outline || buildOutline(word);
+      currentHint = payload.hint || (payload.subcategory ? "التقسيم: " + payload.subcategory : "");
+      currentChoices = Array.isArray(payload.choices) ? payload.choices : [];
+      currentMode = payload.gameMode || currentMode;
+
+      let text = "الكلمة: " + word;
+      if (payload.subcategory) {
+        text += "\nالتقسيم: " + payload.subcategory;
+      }
+
+      wordText.innerText = text;
+      updateWordUiForViewer();
+      setActiveStep("word");
+    });
+
+    socket.on("game:wordInfo", (payload) => {
+      currentOutline = payload.outline || currentOutline;
+      currentHint = payload.hint || currentHint;
+      currentChoices = Array.isArray(payload.choices) ? payload.choices : currentChoices;
+      currentMode = payload.gameMode || currentMode;
+      modeBadge.innerText = "الوضع: " + modeLabel(currentMode);
+      updateWordUiForViewer();
     });
 
     socket.on("round:ended", (payload) => {
       statusText.innerText = payload.reason === "timeout" ? "انتهت الجولة" : "تم إنهاء الجولة";
       wordText.innerText = "الكلمة: " + payload.word;
+      setActiveStep("chat");
+      appendChat(
+        payload.reason === "timeout"
+          ? "⏰ انتهى الوقت. الكلمة كانت: " + payload.word
+          : "انتهت الجولة. الكلمة كانت: " + payload.word,
+        true,
+        false
+      );
     });
 
     socket.on("chat:message", (payload) => {
       appendChat(payload.playerName + ": " + payload.text, false, false);
+      setActiveStep("chat");
     });
 
     socket.on("chat:correct", (payload) => {
       const extra = payload.bonusText ? payload.bonusText : "";
       appendChat("✅ " + payload.playerName + " جاوب صح: " + payload.answer + " (" + payload.guessingTeam + extra + ")", false, true);
+      setActiveStep("chat");
+    });
+
+    socket.on("chat:wrong", (payload) => {
+      appendChat("❌ " + payload.playerName + " إجابته خطأ", false, false, true);
+      setActiveStep("chat");
     });
 
     socket.on("system:message", (payload) => {
@@ -1285,10 +1935,11 @@
     socket.on("game:finished", (payload) => {
       clearInterval(roundTimer);
       winnerText.innerText = payload.winner ? "الفائز: " + payload.winner.name : "الفائز: -";
-      renderScores(payload.teams);
+      renderScores(payload.teams, currentRoomState ? currentRoomState.players : []);
       showScreen(resultsScreen);
       updateManualGuessControls();
       updateDrawerPicker();
+      appendChat("🏁 انتهت اللعبة", true, false);
     });
 
     canvas.addEventListener("mousedown", startDrawing);
@@ -1303,6 +1954,11 @@
 
     chatInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") sendChat();
+    });
+
+    brushSizeInput.addEventListener("input", (e) => {
+      brushSize = Number(e.target.value);
+      brushSizeValue.innerText = brushSize;
     });
 
     initPalette();
