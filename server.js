@@ -27,7 +27,7 @@ const DEFAULT_SETTINGS = {
   totalRounds: 10,
   roundSeconds: 45,
   targetScore: 35,
-  gameMode: "both"
+  gameMode: "choices"
 };
 
 const SCORE = {
@@ -113,7 +113,9 @@ const CATEGORY_TREE = {
       "آسيا": ["اليابان", "الصين", "كوريا الجنوبية", "الهند", "تايلند", "إندونيسيا"],
       "عالمية": ["فرنسا", "إيطاليا", "ألمانيا", "البرازيل", "الأرجنتين", "أمريكا", "بريطانيا", "كندا"]
     }
-  },
+  }
+};
+
 const CATEGORY_META = Object.entries(CATEGORY_TREE).map(([name, value]) => ({
   name,
   icon: value.icon,
@@ -174,7 +176,7 @@ function makeOutline(word) {
   return parts.map((part) => "_ ".repeat(part.length).trim()).join("   /   ");
 }
 
-function buildHint(category, subcategory, word) {
+function buildHint(category, _subcategory, word) {
   const letterCount = String(word).replace(/\s/g, "").length;
   if (category === "أعلام") {
     return `علم دولة - عدد الأحرف: ${letterCount}`;
@@ -438,7 +440,7 @@ function openStealWindow(roomCode) {
     points: SCORE.steal
   });
 
-  systemMessage(roomCode, `⚡ بدأت السرقة لمدة ${STEAL.durationSeconds} ثواني للفريق: ${teamName}`, "steal");
+  systemMessage(roomCode, `⚡ انتهى وقت الفريق الأول، الآن ${teamName} يقدر يجاوب`, "steal");
   emitRoomState(roomCode);
 
   room.stealTimer = setTimeout(() => {
@@ -496,6 +498,15 @@ function startRoundAfterWheel(roomCode) {
         gameMode: room.settings.gameMode
       });
     }
+
+    if (player.teamId !== room.activeTeamId && player.id !== room.activeDrawerId) {
+      io.to(player.id).emit("game:wordInfo", {
+        outline: "",
+        hint: "",
+        choices: room.settings.gameMode === "write" ? [] : room.roundChoices,
+        gameMode: room.settings.gameMode
+      });
+    }
   });
 
   systemMessage(roomCode, `🎨 بدأت الجولة: ${activeTeam ? activeTeam.name : "-"} يرسمون ويخمنون`, "round");
@@ -545,14 +556,10 @@ function applyCorrectGuess(roomCode, player, answerText, options = {}) {
     speedBonusApplied = elapsedMs <= SCORE.speedWindowSeconds * 1000;
     player.streak = (player.streak || 0) + 1;
 
-    if (speedBonusApplied) {
-      added += SCORE.speed;
-    }
+    if (speedBonusApplied) added += SCORE.speed;
 
     streakBonusApplied = player.streak >= 2;
-    if (streakBonusApplied) {
-      added += SCORE.streak;
-    }
+    if (streakBonusApplied) added += SCORE.streak;
   }
 
   if (playerTeam) {
@@ -580,7 +587,7 @@ function applyCorrectGuess(roomCode, player, answerText, options = {}) {
   });
 
   if (isSteal) {
-    systemMessage(roomCode, `⚡ ${player.name} سرق الجواب لصالح ${playerTeam ? playerTeam.name : "-" } +${SCORE.steal}`, "steal-correct");
+    systemMessage(roomCode, `⚡ ${player.name} أخذ الجواب سرقة لصالح ${playerTeam ? playerTeam.name : "-"} +${SCORE.steal}`, "steal-correct");
   } else {
     systemMessage(roomCode, `✅ ${player.name} جاوب صح +${SCORE.correct}`, "correct");
     if (speedBonusApplied) systemMessage(roomCode, `⚡ سرعة +${SCORE.speed}`, "bonus");
@@ -972,10 +979,19 @@ io.on("connection", (socket) => {
     const isSteal = payload.mode === "steal" || room.stealModeActive;
 
     if (!isSteal) {
-      if (sender.teamId !== room.activeTeamId) return;
+      if (sender.teamId !== room.activeTeamId) {
+        socket.emit("room:error", { message: "في هالجولة فريق الرسام فقط يجاوب" });
+        return;
+      }
     } else {
-      if (!room.stealModeActive) return;
-      if (sender.teamId === room.activeTeamId) return;
+      if (!room.stealModeActive) {
+        socket.emit("room:error", { message: "وضع السرقة غير مفعل الآن" });
+        return;
+      }
+      if (sender.teamId === room.activeTeamId) {
+        socket.emit("room:error", { message: "فريق الدور ما يقدر يسرق" });
+        return;
+      }
     }
 
     io.to(room.code).emit("chat:message", {
@@ -985,7 +1001,7 @@ io.on("connection", (socket) => {
       at: Date.now()
     });
 
-    systemMessage(room.code, isSteal ? `⚡ ${sender.name} اختار إجابة في السرقة` : `🧩 ${sender.name} اختار إجابة`, "guess");
+    systemMessage(room.code, isSteal ? `⚡ ${sender.name} ضغط اختيار في السرقة` : `🧩 ${sender.name} ضغط اختيار`, "guess");
 
     if (normalizeArabic(choice) === normalizeArabic(room.activeWord)) {
       applyCorrectGuess(room.code, sender, choice, { isSteal });
