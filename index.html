@@ -1208,8 +1208,9 @@
       if (role === "drawer") {
         drawerBadge.classList.remove("hidden");
       } else if (role === "guesser" || role === "steal") {
-        guesserBadge.classList.remove("hidden");
-        guesserBadge.textContent = role === "steal" ? "أنت في وضع السرقة" : "أنت مخمن";
+  guesserBadge.classList.remove("hidden");
+  guesserBadge.textContent = role === "steal" ? "أنت تقدرين تجاوب الآن" : "أنت مخمن";
+}
       } else {
         viewerBadge.classList.remove("hidden");
       }
