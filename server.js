@@ -34,7 +34,12 @@ const SCORE = {
   correct: 10,
   speed: 5,
   streak: 5,
-  speedWindowSeconds: 12
+  speedWindowSeconds: 12,
+  steal: 6
+};
+
+const STEAL = {
+  durationSeconds: 8
 };
 
 const SETTING_OPTIONS = {
@@ -155,6 +160,14 @@ function getPlayerById(room, playerId) {
   return room.players.find((player) => player.id === playerId) || null;
 }
 
+function getTeamById(room, teamId) {
+  return room.teams.find((team) => team.id === teamId) || null;
+}
+
+function getStealTeams(room) {
+  return room.teams.filter((team) => team.id !== room.activeTeamId);
+}
+
 function normalizeArabic(text = "") {
   return String(text)
     .trim()
@@ -238,7 +251,9 @@ function buildRoundPayload(room) {
     activeSubcategory: room.activeSubcategory,
     roundEndsAt: room.roundEndsAt,
     gameMode: room.settings.gameMode,
-    targetScore: room.settings.targetScore
+    targetScore: room.settings.targetScore,
+    stealModeActive: !!room.stealModeActive,
+    stealEndsAt: room.stealEndsAt || null
   };
 }
 
@@ -282,6 +297,8 @@ function emitRoomState(roomCode) {
     activeSubcategory: room.activeSubcategory,
     roundEndsAt: room.roundEndsAt,
     chooserTeamId: room.chooserTeamId,
+    stealModeActive: !!room.stealModeActive,
+    stealEndsAt: room.stealEndsAt || null,
     players: publicPlayers(room),
     teams: room.teams,
     categories: CATEGORY_META
@@ -308,6 +325,19 @@ function clearRoundTimer(room) {
   }
 }
 
+function clearStealTimer(room) {
+  if (room.stealTimer) {
+    clearTimeout(room.stealTimer);
+    room.stealTimer = null;
+  }
+}
+
+function resetStealState(room) {
+  room.stealModeActive = false;
+  room.stealEndsAt = null;
+  room.stealTimer = null;
+}
+
 function maybeFinishByTargetScore(roomCode) {
   const room = rooms.get(roomCode);
   if (!room) return false;
@@ -325,6 +355,8 @@ function finishGame(roomCode, reason = "انتهت اللعبة") {
   room.roundEndsAt = null;
   room.chooserTeamId = null;
   clearRoundTimer(room);
+  clearStealTimer(room);
+  resetStealState(room);
 
   const winner = room.teams.slice().sort((a, b) => b.score - a.score)[0] || null;
 
@@ -343,6 +375,8 @@ function prepareNextRound(roomCode) {
   if (!room) return;
 
   clearRoundTimer(room);
+  clearStealTimer(room);
+  resetStealState(room);
 
   if (maybeFinishByTargetScore(roomCode)) return;
 
@@ -380,6 +414,64 @@ function prepareNextRound(roomCode) {
   emitRoomState(roomCode);
 }
 
+function endRoundAndQueueNext(roomCode, reason = "timeout") {
+  const room = rooms.get(roomCode);
+  if (!room) return;
+
+  clearRoundTimer(room);
+  clearStealTimer(room);
+  resetStealState(room);
+
+  io.to(roomCode).emit("steal:ended");
+  io.to(roomCode).emit("round:ended", {
+    reason,
+    word: room.activeWord
+  });
+
+  if (reason === "timeout") {
+    systemMessage(roomCode, `⏱️ انتهى الوقت. الكلمة كانت: ${room.activeWord}`, "timeout");
+  } else {
+    systemMessage(roomCode, `انتهت الجولة. الكلمة كانت: ${room.activeWord}`, "round-end");
+  }
+
+  emitRoomState(roomCode);
+
+  setTimeout(() => {
+    prepareNextRound(roomCode);
+  }, 1800);
+}
+
+function openStealWindow(roomCode) {
+  const room = rooms.get(roomCode);
+  if (!room || room.status !== "playing" || room.roundResolved) return;
+
+  const stealTeams = getStealTeams(room);
+  if (!stealTeams.length) {
+    endRoundAndQueueNext(roomCode, "timeout");
+    return;
+  }
+
+  room.stealModeActive = true;
+  room.stealEndsAt = Date.now() + STEAL.durationSeconds * 1000;
+
+  const teamName = stealTeams.map((team) => team.name).join(" / ");
+
+  io.to(roomCode).emit("steal:available", {
+    teamName,
+    stealEndsAt: room.stealEndsAt,
+    points: SCORE.steal
+  });
+
+  systemMessage(roomCode, `⚡ بدأت السرقة لمدة ${STEAL.durationSeconds} ثواني للفريق: ${teamName}`, "steal");
+  emitRoomState(roomCode);
+
+  room.stealTimer = setTimeout(() => {
+    const currentRoom = rooms.get(roomCode);
+    if (!currentRoom || currentRoom.roundResolved) return;
+    endRoundAndQueueNext(roomCode, "timeout");
+  }, STEAL.durationSeconds * 1000);
+}
+
 function startRoundAfterWheel(roomCode) {
   const room = rooms.get(roomCode);
   if (!room) return;
@@ -390,6 +482,8 @@ function startRoundAfterWheel(roomCode) {
   room.roundStartedAt = Date.now();
   room.lastGuess = null;
   room.roundResolved = false;
+  room.stealModeActive = false;
+  room.stealEndsAt = null;
 
   io.to(roomCode).emit("draw:clear");
 
@@ -432,25 +526,8 @@ function startRoundAfterWheel(roomCode) {
   emitRoomState(roomCode);
 
   room.roundTimer = setTimeout(() => {
-    handleRoundTimeout(roomCode);
+    openStealWindow(roomCode);
   }, room.settings.roundSeconds * 1000);
-}
-
-function handleRoundTimeout(roomCode) {
-  const room = rooms.get(roomCode);
-  if (!room || room.status !== "playing") return;
-
-  io.to(roomCode).emit("round:ended", {
-    reason: "timeout",
-    word: room.activeWord
-  });
-
-  systemMessage(roomCode, `⏱️ انتهى الوقت. الكلمة كانت: ${room.activeWord}`, "timeout");
-  emitRoomState(roomCode);
-
-  setTimeout(() => {
-    prepareNextRound(roomCode);
-  }, 1800);
 }
 
 function applyWrongGuess(room, player) {
@@ -465,37 +542,49 @@ function applyWrongGuess(room, player) {
   emitRoomState(room.code);
 }
 
-function applyCorrectGuess(roomCode, player, answerText) {
+function applyCorrectGuess(roomCode, player, answerText, options = {}) {
   const room = rooms.get(roomCode);
   if (!room || room.status !== "playing" || !player) return;
   if (room.roundResolved) return;
   if (player.id === room.activeDrawerId) return;
-  if (player.teamId !== room.activeTeamId) return;
+
+  const isSteal = !!options.isSteal;
+  const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
+  const playerTeam = room.teams.find((team) => team.id === player.teamId);
+
+  if (!isSteal && player.teamId !== room.activeTeamId) return;
+  if (isSteal && player.teamId === room.activeTeamId) return;
 
   room.roundResolved = true;
 
-  const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
-  const elapsedMs = Date.now() - room.roundStartedAt;
-  const speedBonusApplied = elapsedMs <= SCORE.speedWindowSeconds * 1000;
-
   let added = SCORE.correct;
-  player.streak = (player.streak || 0) + 1;
+  let speedBonusApplied = false;
+  let streakBonusApplied = false;
 
-  if (speedBonusApplied) {
-    added += SCORE.speed;
+  if (isSteal) {
+    added = SCORE.steal;
+    player.streak = 0;
+  } else {
+    const elapsedMs = Date.now() - room.roundStartedAt;
+    speedBonusApplied = elapsedMs <= SCORE.speedWindowSeconds * 1000;
+    player.streak = (player.streak || 0) + 1;
+
+    if (speedBonusApplied) {
+      added += SCORE.speed;
+    }
+
+    streakBonusApplied = player.streak >= 2;
+    if (streakBonusApplied) {
+      added += SCORE.streak;
+    }
   }
 
-  const streakBonusApplied = player.streak >= 2;
-  if (streakBonusApplied) {
-    added += SCORE.streak;
-  }
-
-  if (activeTeam) {
-    activeTeam.score += added;
+  if (playerTeam) {
+    playerTeam.score += added;
   }
 
   room.players.forEach((item) => {
-    if (item.id !== player.id && item.teamId === room.activeTeamId && item.id !== room.activeDrawerId) {
+    if (!isSteal && item.id !== player.id && item.teamId === room.activeTeamId && item.id !== room.activeDrawerId) {
       item.streak = 0;
     }
   });
@@ -503,29 +592,37 @@ function applyCorrectGuess(roomCode, player, answerText) {
   io.to(roomCode).emit("chat:correct", {
     playerName: player.name,
     answer: answerText || room.activeWord,
-    guessingTeam: activeTeam ? activeTeam.name : "-",
+    guessingTeam: playerTeam ? playerTeam.name : "-",
     scoreAdded: added,
-    bonusText:
-      (speedBonusApplied ? ` + سرعة ${SCORE.speed}` : "") +
-      (streakBonusApplied ? ` + ستريك ${SCORE.streak}` : ""),
+    bonusText: isSteal
+      ? ` + سرقة ${SCORE.steal}`
+      : ((speedBonusApplied ? ` + سرعة ${SCORE.speed}` : "") + (streakBonusApplied ? ` + ستريك ${SCORE.streak}` : "")),
     speedBonusApplied,
     streakBonusApplied,
-    streak: player.streak
+    streak: player.streak || 0,
+    isSteal
   });
 
-  systemMessage(roomCode, `✅ ${player.name} جاوب صح +${SCORE.correct}`, "correct");
-  if (speedBonusApplied) systemMessage(roomCode, `⚡ سرعة +${SCORE.speed}`, "bonus");
-  if (streakBonusApplied) systemMessage(roomCode, `🔥 ستريك +${SCORE.streak}`, "bonus");
+  if (isSteal) {
+    systemMessage(roomCode, `⚡ ${player.name} سرق الجواب لصالح ${playerTeam ? playerTeam.name : "-" } +${SCORE.steal}`, "steal-correct");
+  } else {
+    systemMessage(roomCode, `✅ ${player.name} جاوب صح +${SCORE.correct}`, "correct");
+    if (speedBonusApplied) systemMessage(roomCode, `⚡ سرعة +${SCORE.speed}`, "bonus");
+    if (streakBonusApplied) systemMessage(roomCode, `🔥 ستريك +${SCORE.streak}`, "bonus");
+  }
 
-  if (player.streak >= 2) {
+  if (!isSteal && player.streak >= 2) {
     io.to(roomCode).emit("streak:show", {
       playerName: player.name,
       streak: player.streak
     });
   }
 
-  emitRoomState(roomCode);
   clearRoundTimer(room);
+  clearStealTimer(room);
+  resetStealState(room);
+  io.to(roomCode).emit("steal:ended");
+  emitRoomState(roomCode);
 
   if (maybeFinishByTargetScore(roomCode)) return;
 
@@ -615,6 +712,9 @@ io.on("connection", (socket) => {
       roundResolved: false,
       chooserTeamId: null,
       lastGuess: null,
+      stealModeActive: false,
+      stealEndsAt: null,
+      stealTimer: null,
       teams: buildTeams(teamCount, teamNames),
       players: [
         {
@@ -693,6 +793,7 @@ io.on("connection", (socket) => {
 
     if (!room.players.length) {
       clearRoundTimer(room);
+      clearStealTimer(room);
       rooms.delete(roomCode);
       return;
     }
@@ -839,9 +940,22 @@ io.on("connection", (socket) => {
       return;
     }
 
-    if (sender.teamId !== room.activeTeamId) {
-      socket.emit("room:error", { message: "في هالجولة فريق الرسام فقط يجاوب" });
-      return;
+    const isSteal = payload.mode === "steal" || room.stealModeActive;
+
+    if (!isSteal) {
+      if (sender.teamId !== room.activeTeamId) {
+        socket.emit("room:error", { message: "في هالجولة فريق الرسام فقط يجاوب" });
+        return;
+      }
+    } else {
+      if (!room.stealModeActive) {
+        socket.emit("room:error", { message: "وضع السرقة غير مفعل الآن" });
+        return;
+      }
+      if (sender.teamId === room.activeTeamId) {
+        socket.emit("room:error", { message: "فريق الدور ما يقدر يسرق" });
+        return;
+      }
     }
 
     room.lastGuess = {
@@ -857,13 +971,13 @@ io.on("connection", (socket) => {
       at: Date.now()
     });
 
-    systemMessage(room.code, `💬 ${sender.name} حاول يجاوب`, "guess");
+    systemMessage(room.code, isSteal ? `⚡ ${sender.name} حاول يسرق الجواب` : `💬 ${sender.name} حاول يجاوب`, "guess");
 
     const normalizedInput = normalizeArabic(message);
     const normalizedWord = normalizeArabic(room.activeWord);
 
     if (normalizedInput === normalizedWord) {
-      applyCorrectGuess(room.code, sender, message);
+      applyCorrectGuess(room.code, sender, message, { isSteal });
     } else {
       applyWrongGuess(room, sender);
     }
@@ -874,10 +988,19 @@ io.on("connection", (socket) => {
     if (!room || room.status !== "playing") return;
 
     const sender = getPlayerById(room, socket.id);
-    if (!sender || sender.id === room.activeDrawerId || sender.teamId !== room.activeTeamId) return;
+    if (!sender || sender.id === room.activeDrawerId) return;
 
     const choice = String(payload.choice || "").trim();
     if (!choice) return;
+
+    const isSteal = payload.mode === "steal" || room.stealModeActive;
+
+    if (!isSteal) {
+      if (sender.teamId !== room.activeTeamId) return;
+    } else {
+      if (!room.stealModeActive) return;
+      if (sender.teamId === room.activeTeamId) return;
+    }
 
     io.to(room.code).emit("chat:message", {
       playerName: sender.name,
@@ -886,10 +1009,10 @@ io.on("connection", (socket) => {
       at: Date.now()
     });
 
-    systemMessage(room.code, `🧩 ${sender.name} اختار إجابة`, "guess");
+    systemMessage(room.code, isSteal ? `⚡ ${sender.name} اختار إجابة في السرقة` : `🧩 ${sender.name} اختار إجابة`, "guess");
 
     if (normalizeArabic(choice) === normalizeArabic(room.activeWord)) {
-      applyCorrectGuess(room.code, sender, choice);
+      applyCorrectGuess(room.code, sender, choice, { isSteal });
     } else {
       applyWrongGuess(room, sender);
     }
@@ -905,8 +1028,10 @@ io.on("connection", (socket) => {
     const player = getPlayerById(room, room.lastGuess.playerId);
     if (!player) return;
 
+    const isSteal = room.stealModeActive && player.teamId !== room.activeTeamId;
+
     if (payload.isCorrect) {
-      applyCorrectGuess(room.code, player, room.lastGuess.text);
+      applyCorrectGuess(room.code, player, room.lastGuess.text, { isSteal });
     } else {
       applyWrongGuess(room, player);
       room.lastGuess = null;
@@ -922,6 +1047,7 @@ io.on("connection", (socket) => {
 
       if (!room.players.length) {
         clearRoundTimer(room);
+        clearStealTimer(room);
         rooms.delete(roomCode);
         continue;
       }
@@ -933,6 +1059,7 @@ io.on("connection", (socket) => {
 
       if (room.activeDrawerId === socket.id && ["choosing-drawer", "spinning", "playing"].includes(room.status)) {
         clearRoundTimer(room);
+        clearStealTimer(room);
         systemMessage(roomCode, "🚨 الرسام خرج من الغرفة وتم تجاوز الجولة", "leave");
         prepareNextRound(roomCode);
         continue;
