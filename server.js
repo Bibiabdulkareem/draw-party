@@ -90,15 +90,15 @@ const CATEGORY_TREE = {
     subcategories: {
       "برية": ["سيارة", "حافلة", "قطار", "تاكسي", "شاحنة", "دراجة", "مترو", "سكوتر"],
       "جوية": ["طائرة", "هليكوبتر", "منطاد", "مروحية", "طائرة ورقية", "صاروخ"],
-      "بحرية": ["سفينة", "قارب", "يخت", "زورق", "غواصة", "عبّارة"]
+      "بحرية": ["سفينة", "قارب", "يخت", "زورق", "غواصة", "عبارة"]
     }
   },
   "كرتون": {
     icon: "🦸",
     subcategories: {
-      "كلاسيك": ["توم", "جيري", "ميكي", "سندباد", "سنووايت", "الأسد الملك", "علاء الدين", "سيمبا"],
-      "حديث": ["سبونج بوب", "بن تن", "موآنا", "إلسا", "شريك", "باربي", "كونغ فو باندا", "بوكيمون"],
-      "أنمي": ["ناروتو", "ون بيس", "بيكاتشو", "ساسكي", "لوفي", "غوكو", "تشانل", "جومانا"]
+      "كلاسيك": ["توم", "جيري", "ميكي", "سنووايت", "الأسد الملك", "علاء الدين", "سيمبا", "سبونج بوب"],
+      "حديث": ["بن تن", "موآنا", "إلسا", "شريك", "باربي", "كونغ فو باندا", "بوكيمون", "بيكاتشو"],
+      "أنمي": ["ناروتو", "ون بيس", "غوكو", "ساسكي", "لوفي", "ديث نوت", "تانجيرو", "ايتاتشي"]
     }
   },
   "طبيعة": {
@@ -121,7 +121,7 @@ const CATEGORY_TREE = {
     icon: "📺",
     subcategories: {
       "عربي": ["طاش ما طاش", "سيلفي", "باب الحارة", "واي فاي", "مخرج 7", "من شارع الهرم"],
-      "أجنبي": ["فريندز", "شيرلوك", "بيكي بلايندرز", "لعبة الحبار", "سترينجر ثينقز", "لافا كاسا دي بابيل"],
+      "أجنبي": ["فريندز", "شيرلوك", "بيكي بلايندرز", "لعبة الحبار", "سترينجر ثينقز", "لا كاسا دي بابيل"],
       "أنمي": ["ون بيس", "ناروتو", "ديث نوت", "هجوم العمالقة", "قاتل الشياطين", "جوجوتسو كايسن"]
     }
   }
@@ -136,13 +136,17 @@ const CATEGORY_META = Object.entries(CATEGORY_TREE).map(([name, value]) => ({
 const rooms = new Map();
 
 function createRoomCode() {
-  return Math.random().toString(36).slice(2, 7).toUpperCase();
+  let code = "";
+  do {
+    code = Math.random().toString(36).slice(2, 7).toUpperCase();
+  } while (rooms.has(code));
+  return code;
 }
 
-function buildTeams(teamCount) {
+function buildTeams(teamCount, teamNames = []) {
   return Array.from({ length: teamCount }, (_, index) => ({
     id: `team-${index + 1}`,
-    name: `الفريق ${index + 1}`,
+    name: String(teamNames[index] || `الفريق ${index + 1}`).trim() || `الفريق ${index + 1}`,
     score: 0
   }));
 }
@@ -172,11 +176,21 @@ function pickFrom(array) {
 
 function makeOutline(word) {
   const parts = String(word).split(" ");
-  return parts.map((part) => {
-    if (part.length <= 1) return part;
-    if (part.length === 2) return `${part[0]}_`;
-    return `${part[0]}${"_".repeat(part.length - 2)}${part[part.length - 1]}`;
-  }).join(" ");
+  return parts.map((part) => "_ ".repeat(part.length).trim()).join("   /   ");
+}
+
+function buildHint(category, subcategory, word) {
+  const letterCount = String(word).replace(/\s/g, "").length;
+  if (category === "أعلام") {
+    return `علم دولة - عدد الأحرف: ${letterCount}`;
+  }
+  if (category === "مسلسلات") {
+    return `المجموعة: ${subcategory} • ارسم رمز أو مشهد مشهور بدون كتابة الاسم`;
+  }
+  if (category === "كرتون") {
+    return "فكر بالشخصية أو شكلها العام";
+  }
+  return `عدد الأحرف: ${letterCount}`;
 }
 
 function sampleChoices(answer) {
@@ -203,13 +217,14 @@ function chooseRoundContent() {
   const category = CATEGORY_TREE[categoryName];
   const subcategoryName = pickFrom(Object.keys(category.subcategories));
   const word = pickFrom(category.subcategories[subcategoryName]);
+
   return {
     category: categoryName,
     subcategory: subcategoryName,
     word,
     choices: sampleChoices(word),
     outline: makeOutline(word),
-    hint: `عدد الحروف: ${word.replace(/\s/g, "").length}`
+    hint: buildHint(categoryName, subcategoryName, word)
   };
 }
 
@@ -234,7 +249,12 @@ function publicPlayers(room) {
     teamId: player.teamId,
     isHost: player.isHost,
     streak: player.streak || 0,
-    role: player.id === room.activeDrawerId ? "drawer" : (player.teamId === room.activeTeamId ? "guesser" : "viewer")
+    role:
+      player.id === room.activeDrawerId
+        ? "drawer"
+        : player.teamId === room.activeTeamId
+          ? "guesser"
+          : "viewer"
   }));
 }
 
@@ -244,12 +264,17 @@ function emitRoomState(roomCode) {
 
   io.to(roomCode).emit("room:state", {
     code: room.code,
+    roomName: room.name,
     name: room.name,
     hostId: room.hostId,
     status: room.status,
     maxPlayers: room.maxPlayers,
     teamCount: room.teamCount,
     settings: room.settings,
+    roundSeconds: room.settings.roundSeconds,
+    totalRounds: room.settings.totalRounds,
+    targetScore: room.settings.targetScore,
+    gameMode: room.settings.gameMode,
     currentRound: room.currentRound,
     activeTeamId: room.activeTeamId,
     activeDrawerId: room.activeDrawerId,
@@ -319,9 +344,7 @@ function prepareNextRound(roomCode) {
 
   clearRoundTimer(room);
 
-  if (maybeFinishByTargetScore(roomCode)) {
-    return;
-  }
+  if (maybeFinishByTargetScore(roomCode)) return;
 
   if (room.currentRound >= room.settings.totalRounds) {
     finishGame(roomCode, "اكتملت كل الجولات");
@@ -389,18 +412,18 @@ function startRoundAfterWheel(roomCode) {
       word: room.activeWord,
       outline: room.roundOutline,
       hint: room.roundHint,
+      choices: room.settings.gameMode === "write" ? [] : room.roundChoices,
       gameMode: room.settings.gameMode
     });
   }
 
   room.players.forEach((player) => {
     if (player.teamId === room.activeTeamId && player.id !== room.activeDrawerId) {
-      io.to(player.id).emit("game:guessPrompt", {
-        category: room.activeCategory,
-        subcategory: room.activeSubcategory,
-        outline: room.roundOutline,
+      io.to(player.id).emit("game:wordInfo", {
+        outline: room.settings.gameMode === "both" ? room.roundOutline : "",
+        hint: "",
         choices: room.settings.gameMode === "write" ? [] : room.roundChoices,
-        mode: room.settings.gameMode
+        gameMode: room.settings.gameMode
       });
     }
   });
@@ -433,6 +456,12 @@ function handleRoundTimeout(roomCode) {
 function applyWrongGuess(room, player) {
   if (!player) return;
   player.streak = 0;
+
+  io.to(room.code).emit("chat:wrong", {
+    playerName: player.name
+  });
+
+  systemMessage(room.code, `❌ ${player.name} إجابته خطأ`, "wrong");
   emitRoomState(room.code);
 }
 
@@ -476,6 +505,9 @@ function applyCorrectGuess(roomCode, player, answerText) {
     answer: answerText || room.activeWord,
     guessingTeam: activeTeam ? activeTeam.name : "-",
     scoreAdded: added,
+    bonusText:
+      (speedBonusApplied ? ` + سرعة ${SCORE.speed}` : "") +
+      (streakBonusApplied ? ` + ستريك ${SCORE.streak}` : ""),
     speedBonusApplied,
     streakBonusApplied,
     streak: player.streak
@@ -495,9 +527,7 @@ function applyCorrectGuess(roomCode, player, answerText) {
   emitRoomState(roomCode);
   clearRoundTimer(room);
 
-  if (maybeFinishByTargetScore(roomCode)) {
-    return;
-  }
+  if (maybeFinishByTargetScore(roomCode)) return;
 
   setTimeout(() => {
     prepareNextRound(roomCode);
@@ -508,25 +538,58 @@ function sanitizeSettings(payload = {}) {
   const totalRounds = SETTING_OPTIONS.totalRounds.includes(Number(payload.totalRounds))
     ? Number(payload.totalRounds)
     : DEFAULT_SETTINGS.totalRounds;
+
   const roundSeconds = SETTING_OPTIONS.roundSeconds.includes(Number(payload.roundSeconds))
     ? Number(payload.roundSeconds)
     : DEFAULT_SETTINGS.roundSeconds;
+
   const targetScore = SETTING_OPTIONS.targetScore.includes(Number(payload.targetScore))
     ? Number(payload.targetScore)
     : DEFAULT_SETTINGS.targetScore;
+
   const gameMode = SETTING_OPTIONS.gameMode.includes(payload.gameMode)
     ? payload.gameMode
     : DEFAULT_SETTINGS.gameMode;
+
   return { totalRounds, roundSeconds, targetScore, gameMode };
 }
 
+function roomPreview(room) {
+  return {
+    code: room.code,
+    roomName: room.name,
+    status: room.status,
+    maxPlayers: room.maxPlayers,
+    teamCount: room.teamCount,
+    settings: room.settings,
+    teams: room.teams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      playersCount: room.players.filter((p) => p.teamId === team.id).length
+    }))
+  };
+}
+
 io.on("connection", (socket) => {
+  socket.on("room:preview", (payload = {}) => {
+    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+    const room = rooms.get(roomCode);
+
+    if (!room) {
+      socket.emit("room:error", { message: "الغرفة غير موجودة" });
+      return;
+    }
+
+    socket.emit("room:preview:result", roomPreview(room));
+  });
+
   socket.on("room:create", (payload = {}) => {
     const name = String(payload.name || "هوست").trim().slice(0, 24) || "هوست";
     const roomName = String(payload.roomName || "غرفة أيام الطيبين").trim().slice(0, 32) || "غرفة أيام الطيبين";
     const maxPlayers = Math.max(2, Math.min(12, Number(payload.maxPlayers) || 6));
     const teamCount = Math.max(2, Math.min(4, Number(payload.teamCount) || 2));
     const settings = sanitizeSettings(payload.settings || payload);
+    const teamNames = Array.isArray(payload.teamNames) ? payload.teamNames.slice(0, teamCount) : [];
     const roomCode = createRoomCode();
 
     const room = {
@@ -552,7 +615,7 @@ io.on("connection", (socket) => {
       roundResolved: false,
       chooserTeamId: null,
       lastGuess: null,
-      teams: buildTeams(teamCount),
+      teams: buildTeams(teamCount, teamNames),
       players: [
         {
           id: socket.id,
@@ -575,6 +638,7 @@ io.on("connection", (socket) => {
   socket.on("room:join", (payload = {}) => {
     const roomCode = String(payload.roomCode || "").trim().toUpperCase();
     const name = String(payload.name || "لاعب").trim().slice(0, 24) || "لاعب";
+    const preferredTeamId = String(payload.teamId || "");
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -592,17 +656,27 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const teamIndex = room.players.length % room.teams.length;
+    let chosenTeam = room.teams.find((t) => t.id === preferredTeamId);
+    if (!chosenTeam) {
+      chosenTeam = room.teams
+        .slice()
+        .sort((a, b) => {
+          const aCount = room.players.filter((p) => p.teamId === a.id).length;
+          const bCount = room.players.filter((p) => p.teamId === b.id).length;
+          return aCount - bCount;
+        })[0];
+    }
+
     room.players.push({
       id: socket.id,
       name,
-      teamId: room.teams[teamIndex].id,
+      teamId: chosenTeam.id,
       isHost: false,
       streak: 0
     });
 
     socket.join(roomCode);
-    systemMessage(roomCode, `👋 ${name} دخل الغرفة`, "join");
+    systemMessage(roomCode, `👋 ${name} دخل الغرفة إلى ${chosenTeam.name}`, "join");
     emitRoomState(roomCode);
   });
 
@@ -610,6 +684,7 @@ io.on("connection", (socket) => {
     const roomCode = String(payload.roomCode || "").trim().toUpperCase();
     const room = rooms.get(roomCode);
     if (!room) return;
+
     const leavingPlayer = getPlayerById(room, socket.id);
     if (!leavingPlayer) return;
 
@@ -634,8 +709,16 @@ io.on("connection", (socket) => {
   socket.on("host:update-settings", (payload = {}) => {
     const room = rooms.get(payload.roomCode);
     if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
+
     room.settings = sanitizeSettings(payload.settings || {});
     room.name = String(payload.roomName || room.name).trim().slice(0, 32) || room.name;
+
+    if (Array.isArray(payload.teamNames)) {
+      payload.teamNames.slice(0, room.teams.length).forEach((name, index) => {
+        room.teams[index].name = String(name || room.teams[index].name).trim() || room.teams[index].name;
+      });
+    }
+
     systemMessage(room.code, "⚙️ تم تحديث إعدادات الغرفة", "settings");
     emitRoomState(room.code);
   });
@@ -671,6 +754,7 @@ io.on("connection", (socket) => {
 
     const chooser = getPlayerById(room, socket.id);
     if (!chooser) return;
+
     const canChoose = chooser.teamId === room.chooserTeamId || room.hostId === socket.id;
     if (!canChoose) return;
 
@@ -808,6 +892,24 @@ io.on("connection", (socket) => {
       applyCorrectGuess(room.code, sender, choice);
     } else {
       applyWrongGuess(room, sender);
+    }
+  });
+
+  socket.on("guess:manual", (payload = {}) => {
+    const room = rooms.get(payload.roomCode);
+    if (!room || room.status !== "playing") return;
+
+    const canJudge = socket.id === room.activeDrawerId || socket.id === room.hostId;
+    if (!canJudge || !room.lastGuess) return;
+
+    const player = getPlayerById(room, room.lastGuess.playerId);
+    if (!player) return;
+
+    if (payload.isCorrect) {
+      applyCorrectGuess(room.code, player, room.lastGuess.text);
+    } else {
+      applyWrongGuess(room, player);
+      room.lastGuess = null;
     }
   });
 
