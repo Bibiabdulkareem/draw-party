@@ -18,8 +18,6 @@
       --red: #ef4444;
       --blue: #38bdf8;
       --shadow: 0 18px 48px rgba(9, 18, 43, 0.25);
-      --dark: #111827;
-      --soft-dark: rgba(17,24,39,0.45);
     }
 
     * { box-sizing: border-box; }
@@ -174,7 +172,7 @@
 
     .small {
       font-size: 13px;
-      color: rgba(255,255,255,0.75);
+      color: rgba(255,255,255,0.78);
     }
 
     .field { margin-bottom: 12px; }
@@ -246,13 +244,6 @@
       padding: 12px 14px;
       border-radius: 14px;
       background: linear-gradient(180deg, #4ade80, #22c55e);
-      color: #fff;
-    }
-
-    .btn-blue {
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #60a5fa, #2563eb);
       color: #fff;
     }
 
@@ -478,6 +469,31 @@
       margin-top: 10px;
     }
 
+    .choice-title {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      text-align: center;
+    }
+
+    .choice-btn {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+    }
+
+    .choice-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.24);
+    }
+
     .chat-box {
       height: 250px;
       overflow-y: auto;
@@ -620,30 +636,6 @@
       .chat-box {
         height: 200px;
       }
-      .choice-btn {
-  width: 100%;
-  border: none;
-  border-radius: 16px;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: bold;
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.18);
-  cursor: pointer;
-}
-
-377 .choice-btn:hover {
-  transform: translateY(-1px);
-  background: rgba(255,255,255,0.24);
-}
-
-383 .choice-title {
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: rgba(255,255,255,0.8);
-  text-align: center;
-}
       .desktop-only {
         display: none !important;
       }
@@ -655,15 +647,6 @@
       }
       .mobile-status-strip {
         display: grid;
-      }
-      .tools {
-        gap: 8px;
-      }
-      .tools.mobile-hide-for-non-drawer.hidden-mobile {
-        display: none !important;
-      }
-      .compact-panel.hidden-mobile {
-        display: none !important;
       }
       .board-wrap {
         padding: 14px;
@@ -683,6 +666,10 @@
         display: grid;
         gap: 12px;
       }
+      .choice-btn {
+        font-size: 16px;
+        padding: 14px;
+      }
     }
   </style>
 </head>
@@ -692,11 +679,11 @@
   <div class="overlay" id="rulesOverlay">
     <div class="overlay-card">
       <h2>قوانين اللعبة 📜</h2>
-      <p class="muted">الفريق اللي عليه الدور هو اللي يجاوب، والرسام نفسه ممنوع يجاوب.</p>
+      <p class="muted">الفريق اللي عليه الدور هو اللي يجاوب أول، والرسام نفسه ممنوع يجاوب.</p>
 
       <div class="team-name-list">
-        <div class="preview-box">1) الفريق اللي يرسم هو نفسه اللي يخمن.</div>
-        <div class="preview-box">2) الفريق الثاني يقدر يسرق الجواب إذا تفعلت السرقة.</div>
+        <div class="preview-box">1) الفريق اللي عليه الدور يختار الرسام ويجاوب أول.</div>
+        <div class="preview-box">2) إذا انتهى وقتهم، يصير للفريق الثاني فرصة سرقة.</div>
         <div class="preview-box">3) +10 صح • +5 سرعة • +5 ستريك.</div>
         <div class="preview-box">4) تنتهي اللعبة بالنقاط أو بانتهاء الجولات.</div>
       </div>
@@ -730,7 +717,7 @@
             <div class="tags">
               <div class="tag">اختيار الرسام</div>
               <div class="tag">عجلة حقيقية</div>
-              <div class="tag">اختيارات + كتابة</div>
+              <div class="tag">اختيارات بأزرار</div>
               <div class="tag">غرف وروابط</div>
               <div class="tag">Steal Mode</div>
             </div>
@@ -742,7 +729,7 @@
               <div class="muted">Game On!</div>
               <div class="phone-card">
                 <div class="muted">الكلمة السرية</div>
-                <strong>فطر</strong>
+                <strong>تفاحة</strong>
                 <div class="muted">الفئة: أكل</div>
               </div>
               <div class="phone-btn">ابدأ الرسم</div>
@@ -897,8 +884,8 @@
           <div class="card" style="margin:0;">
             <h3>معلومات</h3>
             <p class="muted" id="settingsText">-</p>
-            <p class="muted">الفريق اللي عليه الدور يختار الرسام.</p>
-            <p class="muted">الفريق نفسه هو اللي يجاوب أول.</p>
+            <p class="muted">الفريق اللي عليه الدور يختار الرسام ويجاوب أول.</p>
+            <p class="muted">إذا انتهى وقتهم، يقدر الفريق الثاني يسرق.</p>
           </div>
         </div>
       </div>
@@ -912,7 +899,7 @@
           <span class="pill" id="categoryText">-</span>
           <span class="pill" id="timerText">-</span>
           <span class="pill" id="modeText">-</span>
-          <span class="pill alert hidden" id="stealPill">وضع السرقة مفعل</span>
+          <span class="pill alert hidden" id="stealPill">الفريق الثاني يجاوب الآن</span>
         </div>
         <div class="row">
           <span class="pill highlight" id="statusText">-</span>
@@ -954,7 +941,7 @@
 
           <canvas id="board" width="1200" height="780"></canvas>
 
-          <div class="tools mobile-hide-for-non-drawer" id="drawingTools">
+          <div class="tools" id="drawingTools">
             <div id="palette" class="palette"></div>
             <label class="muted">الحجم: <span id="brushSizeValue">5</span></label>
             <input id="brushSize" type="range" min="2" max="26" value="5" />
@@ -966,7 +953,7 @@
         </div>
 
         <div class="mobile-stack">
-          <div class="side-card wheel-box compact-panel" id="wheelPanel">
+          <div class="side-card wheel-box" id="wheelPanel">
             <div class="pointer">▼</div>
             <canvas id="wheelCanvas" width="320" height="320"></canvas>
             <div style="margin-top:12px;">
@@ -974,7 +961,7 @@
             </div>
           </div>
 
-          <div class="side-card compact-panel" id="wordPanel">
+          <div class="side-card" id="wordPanel">
             <h3>الكلمة</h3>
             <div id="wordText" class="word-display">الكلمة: -</div>
             <div id="outlineBox" class="info-box hidden"></div>
@@ -997,7 +984,7 @@
             </div>
           </div>
 
-          <div class="side-card compact-panel" id="scorePanel">
+          <div class="side-card" id="scorePanel">
             <h3>النقاط الحالية</h3>
             <div id="scoreList" class="score-list"></div>
           </div>
@@ -1024,16 +1011,16 @@
       transports: ["websocket", "polling"]
     });
 
-  const CATEGORY_META = [
-  { name: "حيوانات", icon: "🐾", color: "#fca5a5" },
-  { name: "أكل", icon: "🍔", color: "#fde68a" },
-  { name: "أماكن", icon: "📍", color: "#c4b5fd" },
-  { name: "أشياء", icon: "🪑", color: "#86efac" },
-  { name: "رياضة", icon: "⚽", color: "#f9a8d4" },
-  { name: "وسائل نقل", icon: "🚗", color: "#fca5a5" },
-  { name: "طبيعة", icon: "🌿", color: "#bef264" },
-  { name: "أعلام", icon: "🏁", color: "#fbcfe8" }
-];
+    const CATEGORY_META = [
+      { name: "حيوانات", icon: "🐾", color: "#fca5a5" },
+      { name: "أكل", icon: "🍔", color: "#fde68a" },
+      { name: "أماكن", icon: "📍", color: "#c4b5fd" },
+      { name: "أشياء", icon: "🪑", color: "#86efac" },
+      { name: "رياضة", icon: "⚽", color: "#f9a8d4" },
+      { name: "وسائل نقل", icon: "🚗", color: "#fca5a5" },
+      { name: "طبيعة", icon: "🌿", color: "#bef264" },
+      { name: "أعلام", icon: "🏁", color: "#fbcfe8" }
+    ];
 
     const COLORS = [
       "#111111", "#2563eb", "#ef4444", "#16a34a", "#f59e0b",
@@ -1111,9 +1098,6 @@
     const brushSizeInput = document.getElementById("brushSize");
     const brushSizeValue = document.getElementById("brushSizeValue");
     const drawingTools = document.getElementById("drawingTools");
-    const wheelPanel = document.getElementById("wheelPanel");
-    const wordPanel = document.getElementById("wordPanel");
-    const scorePanel = document.getElementById("scorePanel");
     const boardSubtitle = document.getElementById("boardSubtitle");
     const mobileRoleText = document.getElementById("mobileRoleText");
     const mobileTeamText = document.getElementById("mobileTeamText");
@@ -1217,8 +1201,8 @@
       const me = getMyPlayer();
       if (!me || !currentRoomState) return "viewer";
       if (mySocketId === currentDrawerId) return "drawer";
+      if (stealModeActive && me.teamId !== currentRoomState.activeTeamId) return "steal";
       if (me.teamId === currentRoomState.activeTeamId) return "guesser";
-      if (stealModeActive) return "steal";
       return "viewer";
     }
 
@@ -1231,12 +1215,13 @@
 
       if (role === "drawer") {
         drawerBadge.classList.remove("hidden");
+        guesserBadge.textContent = "أنت مخمن";
       } else if (role === "guesser" || role === "steal") {
-  guesserBadge.classList.remove("hidden");
-  guesserBadge.textContent = role === "steal" ? "أنت تقدرين تجاوب الآن" : "أنت مخمن";
-}
+        guesserBadge.classList.remove("hidden");
+        guesserBadge.textContent = role === "steal" ? "أنت تقدرين تجاوبين الآن" : "أنت مخمن";
       } else {
         viewerBadge.classList.remove("hidden");
+        guesserBadge.textContent = "أنت مخمن";
       }
     }
 
@@ -1248,14 +1233,13 @@
 
       if (role === "drawer") {
         mobileRoleText.textContent = "أنت رسام";
-        boardSubtitle.textContent = "ركز على الرسم والتلميح";
+        boardSubtitle.textContent = "ركز على الرسم";
       } else if (role === "guesser") {
         mobileRoleText.textContent = "أنت مخمن";
         boardSubtitle.textContent = "شوف الرسم وجاوب بسرعة";
       } else if (role === "steal") {
-  mobileRoleText.textContent = "جاوبي الآن";
-  boardSubtitle.textContent = "خلص وقت الفريق الأول — الآن دوركم تجاوبون";
-}
+        mobileRoleText.textContent = "جاوبي الآن";
+        boardSubtitle.textContent = "خلص وقت الفريق الأول — الآن دوركم تجاوبون";
       } else {
         mobileRoleText.textContent = "أنت مشاهد";
         boardSubtitle.textContent = "تابعي الرسم وانتظري دور فريقك";
@@ -1266,38 +1250,30 @@
       mobileRoundText.textContent = roundText.textContent || "-";
     }
 
-    function applyMobileViewState() {
-      const role = getCurrentRole();
-      const isMobile = window.innerWidth <= 640;
-
-      if (!isMobile) {
-        drawingTools.classList.remove("hidden-mobile");
-        wheelPanel.classList.remove("hidden-mobile");
-        wordPanel.classList.remove("hidden-mobile");
-        scorePanel.classList.remove("hidden-mobile");
-        return;
+    function updateStealUi() {
+      if (stealModeActive) {
+        stealPill.classList.remove("hidden");
+        stealPill.textContent = "الفريق الثاني يجاوب الآن";
+        stealBox.style.display = "block";
+        stealBox.textContent = stealTeamName
+          ? `⚡ خلص وقت الفريق الأول. الآن ${stealTeamName} يقدر يجاوب ويخطف النقاط`
+          : "⚡ خلص وقت الفريق الأول. الآن الفريق الثاني يقدر يجاوب";
+      } else {
+        stealPill.classList.add("hidden");
+        stealBox.style.display = "none";
+        stealBox.textContent = "";
       }
-
-      drawingTools.classList.toggle("hidden-mobile", role !== "drawer");
-      wheelPanel.classList.toggle("hidden-mobile", currentRoomState && currentRoomState.status === "playing");
-      scorePanel.classList.toggle("hidden-mobile", role === "drawer" || role === "guesser");
-      wordPanel.classList.remove("hidden-mobile");
     }
 
-function updateStealUi() {
-  if (stealModeActive) {
-    stealPill.classList.remove("hidden");
-    stealPill.textContent = "الفريق الثاني يجاوب الآن";
-    stealBox.style.display = "block";
-    stealBox.textContent = stealTeamName
-      ? `⚡ خلص وقت الفريق الأول. الآن ${stealTeamName} يقدر يجاوب ويخطف النقاط`
-      : "⚡ خلص وقت الفريق الأول. الآن الفريق الثاني يقدر يجاوب";
-  } else {
-    stealPill.classList.add("hidden");
-    stealBox.style.display = "none";
-    stealBox.textContent = "";
-  }
-}
+    function applyUiByRole() {
+      const role = getCurrentRole();
+      const isDrawer = role === "drawer";
+
+      drawingTools.style.display = isDrawer ? "flex" : "none";
+      updateRoleBadges();
+      updateMobileSummary();
+      updateStealUi();
+    }
 
     function renderPlayers(players, teams) {
       playersList.innerHTML = "";
@@ -1420,8 +1396,8 @@ function updateStealUi() {
       clearInterval(roundTimer);
       roundTimer = setInterval(() => {
         const diff = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        timerText.textContent = diff + " ثانية";
-        mobileTimerText.textContent = diff + " ثانية";
+        timerText.innerText = diff + " ثانية";
+        mobileTimerText.innerText = diff + " ثانية";
         if (diff <= 0) clearInterval(roundTimer);
       }, 250);
     }
@@ -1653,49 +1629,46 @@ function updateStealUi() {
       link.click();
     }
 
-   function renderChoices(choices) {
-  choicesWrap.innerHTML = "";
+    function renderChoices(choices) {
+      choicesWrap.innerHTML = "";
 
-  if (!choices || !choices.length) {
-    choicesWrap.classList.add("hidden");
-    return;
-  }
+      if (!choices || !choices.length) {
+        choicesWrap.classList.add("hidden");
+        return;
+      }
 
-  choicesWrap.classList.remove("hidden");
+      choicesWrap.classList.remove("hidden");
 
-  const title = document.createElement("div");
-  title.className = "choice-title";
-  title.textContent = "اختاري الإجابة بالضغط على الزر";
-  choicesWrap.appendChild(title);
+      const title = document.createElement("div");
+      title.className = "choice-title";
+      title.textContent = "اختاري الإجابة بالضغط على الزر";
+      choicesWrap.appendChild(title);
 
-  choices.forEach((choice) => {
-    const safeChoice = String(choice).replace(/'/g, "\\'");
-    const div = document.createElement("div");
-    div.className = "choice-item";
-    div.innerHTML = `
-      <button class="choice-btn" onclick="pickChoice('${safeChoice}')">
-        ${choice}
-      </button>
-    `;
-    choicesWrap.appendChild(div);
-  });
-}
+      choices.forEach((choice) => {
+        const safeChoice = String(choice).replace(/'/g, "\\'");
+        const div = document.createElement("div");
+        div.className = "choice-item";
+        div.innerHTML = `
+          <button class="choice-btn" onclick="pickChoice('${safeChoice}')">
+            ${choice}
+          </button>
+        `;
+        choicesWrap.appendChild(div);
+      });
+    }
 
     function pickChoice(choice) {
       if (!choice) return;
 
-      if (stealModeActive) {
-        socket.emit("guess:choice", {
-          roomCode,
-          choice,
-          mode: "steal"
-        });
-      } else {
-        socket.emit("guess:choice", {
-          roomCode,
-          choice
-        });
-      }
+      socket.emit("guess:choice", {
+        roomCode,
+        choice,
+        mode: stealModeActive ? "steal" : "normal"
+      });
+
+      document.querySelectorAll(".choice-btn").forEach((btn) => {
+        btn.disabled = true;
+      });
     }
 
     function updateWordUi() {
@@ -1709,22 +1682,19 @@ function updateStealUi() {
 
       if (isDrawer) {
         if (currentOutline) {
-          outlineBox.textContent = "هيكل الكلمة: " + currentOutline;
+          outlineBox.innerText = "هيكل الكلمة: " + currentOutline;
           outlineBox.classList.remove("hidden");
         }
         if (currentHint) {
-          hintBox.textContent = "تلميح بسيط: " + currentHint;
+          hintBox.innerText = "تلميح بسيط: " + currentHint;
           hintBox.classList.remove("hidden");
         }
-        if (currentChoices.length && currentRoomState && (currentRoomState.gameMode === "choices" || currentRoomState.gameMode === "both")) {
-          renderChoices(currentChoices);
-        }
       } else if (isGuesser) {
-        if (currentChoices.length && currentRoomState && (currentRoomState.gameMode === "choices" || currentRoomState.gameMode === "both")) {
+        if (currentChoices.length) {
           renderChoices(currentChoices);
         }
         if (currentOutline && currentRoomState && currentRoomState.gameMode === "both") {
-          outlineBox.textContent = "هيكل تقريبي: " + currentOutline;
+          outlineBox.innerText = "هيكل تقريبي: " + currentOutline;
           outlineBox.classList.remove("hidden");
         }
       }
@@ -1804,20 +1774,21 @@ function updateStealUi() {
 
     socket.on("room:created", (payload) => {
       roomCode = payload.roomCode;
-      roomCodeText.textContent = "الغرفة: " + roomCode;
-      roomLinkText.textContent = window.location.origin + "?room=" + roomCode;
+      roomCodeText.innerText = "الغرفة: " + roomCode;
+      roomLinkText.innerText = window.location.origin + "?room=" + roomCode;
       showScreen(lobbyScreen);
     });
 
     socket.on("room:state", (state) => {
       currentRoomState = state;
       roomCode = state.code;
+      stealModeActive = !!state.stealModeActive;
 
-      roomCodeText.textContent = "الغرفة: " + state.code;
-      roomNameText.textContent = "اسم الغرفة: " + (state.roomName || "غرفة");
-      roundTimeText.textContent = "وقت الجولة: " + state.roundSeconds + " ثانية";
-      roomLinkText.textContent = window.location.origin + "?room=" + state.code;
-      settingsText.textContent =
+      roomCodeText.innerText = "الغرفة: " + state.code;
+      roomNameText.innerText = "اسم الغرفة: " + (state.roomName || "غرفة");
+      roundTimeText.innerText = "وقت الجولة: " + state.roundSeconds + " ثانية";
+      roomLinkText.innerText = window.location.origin + "?room=" + state.code;
+      settingsText.innerText =
         `الجولات: ${state.totalRounds} • الهدف: ${state.targetScore} • الوضع: ${modeLabel(state.gameMode)}`;
 
       renderPlayers(state.players, state.teams);
@@ -1825,12 +1796,10 @@ function updateStealUi() {
       renderScores(state.teams, state.players);
       updateManualGuessControls();
       updateDrawerPicker();
-      updateRoleBadges();
+      applyUiByRole();
       updateWordUi();
-      updateMobileSummary();
-      applyMobileViewState();
 
-      modeText.textContent = modeLabel(state.gameMode);
+      modeText.innerText = modeLabel(state.gameMode);
 
       startGameBtn.style.display = state.hostId === mySocketId && state.status === "lobby" ? "block" : "inline-block";
 
@@ -1840,13 +1809,13 @@ function updateStealUi() {
 
       if (state.status === "choosing-drawer" || state.status === "spinning" || state.status === "playing") {
         showScreen(gameScreen);
-        roundText.textContent = state.currentRound + " / " + state.totalRounds;
-        mobileRoundText.textContent = roundText.textContent;
+        roundText.innerText = state.currentRound + " / " + state.totalRounds;
+        mobileRoundText.innerText = roundText.innerText;
 
         const activeTeam = state.teams.find((item) => item.id === state.activeTeamId);
-        activeTeamText.textContent = activeTeam ? activeTeam.name : "-";
-        mobileTeamText.textContent = activeTeam ? activeTeam.name : "-";
-        categoryText.textContent = state.activeCategory || "-";
+        activeTeamText.innerText = activeTeam ? activeTeam.name : "-";
+        mobileTeamText.innerText = activeTeam ? activeTeam.name : "-";
+        categoryText.innerText = state.activeCategory || "-";
 
         if (state.status === "playing" && state.roundEndsAt) {
           startLocalTimer(state.roundEndsAt);
@@ -1861,24 +1830,21 @@ function updateStealUi() {
     socket.on("game:chooseDrawer", (payload) => {
       stealModeActive = false;
       stealTeamName = "";
-      roundText.textContent = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
-      mobileRoundText.textContent = roundText.textContent;
-      activeTeamText.textContent = payload.activeTeamName || "-";
-      mobileTeamText.textContent = payload.activeTeamName || "-";
-      statusText.textContent = "اختيار الرسام";
-      mobileRoleText.textContent = "اختيار رسام";
-      wordText.textContent = "الكلمة: -";
-      categoryText.textContent = "-";
+      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
+      mobileRoundText.innerText = roundText.innerText;
+      activeTeamText.innerText = payload.activeTeamName || "-";
+      mobileTeamText.innerText = payload.activeTeamName || "-";
+      statusText.innerText = "اختيار الرسام";
+      wordText.innerText = "الكلمة: -";
+      categoryText.innerText = "-";
       currentOutline = "";
       currentHint = "";
       currentChoices = [];
       renderChoices([]);
       spinBtn.disabled = true;
       updateDrawerPicker();
-      updateRoleBadges();
+      applyUiByRole();
       updateWordUi();
-      updateStealUi();
-      applyMobileViewState();
       appendChat("🎯 الآن اختيار الرسام للفريق: " + (payload.activeTeamName || "-"), true, false);
     });
 
@@ -1886,12 +1852,12 @@ function updateStealUi() {
       stealModeActive = false;
       stealTeamName = "";
       currentDrawerId = payload.roomState.activeDrawerId;
-      roundText.textContent = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
-      mobileRoundText.textContent = roundText.textContent;
-      activeTeamText.textContent = payload.activeTeamName || "-";
-      mobileTeamText.textContent = payload.activeTeamName || "-";
-      categoryText.textContent = "-";
-      wordText.textContent = "الكلمة: -";
+      roundText.innerText = payload.roundNumber + " / " + (currentRoomState ? currentRoomState.totalRounds : 10);
+      mobileRoundText.innerText = roundText.innerText;
+      activeTeamText.innerText = payload.activeTeamName || "-";
+      mobileTeamText.innerText = payload.activeTeamName || "-";
+      categoryText.innerText = "-";
+      wordText.innerText = "الكلمة: -";
       currentOutline = "";
       currentHint = "";
       currentChoices = [];
@@ -1901,26 +1867,21 @@ function updateStealUi() {
       updateDrawerPicker();
 
       if (mySocketId === currentDrawerId) {
-        statusText.textContent = "أنت الرسام الآن - لف العجلة";
-        mobileRoleText.textContent = "أنت رسام";
+        statusText.innerText = "أنت الرسام الآن - لف العجلة";
         spinBtn.disabled = false;
       } else {
-        statusText.textContent = payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
-        mobileRoleText.textContent = "انتظار الرسم";
+        statusText.innerText = payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
         spinBtn.disabled = true;
       }
 
       updateManualGuessControls();
-      updateRoleBadges();
+      applyUiByRole();
       updateWordUi();
-      updateStealUi();
-      updateMobileSummary();
-      applyMobileViewState();
       appendChat("🎯 تم اختيار الرسام: " + payload.drawerName, true, false);
     });
 
     socket.on("wheel:result", (payload) => {
-      categoryText.textContent = payload.category + (payload.subcategory ? " / " + payload.subcategory : "");
+      categoryText.innerText = payload.category + (payload.subcategory ? " / " + payload.subcategory : "");
       spinToCategory(payload.category);
       appendChat("🎡 توقفت العجلة على: " + payload.category + (payload.subcategory ? " / " + payload.subcategory : ""), true, false);
     });
@@ -1929,32 +1890,26 @@ function updateStealUi() {
       stealModeActive = false;
       stealTeamName = "";
       currentDrawerId = payload.roomState.activeDrawerId;
-      roundText.textContent = payload.roomState.currentRound + " / " + payload.roomState.totalRounds;
-      mobileRoundText.textContent = roundText.textContent;
-      categoryText.textContent = payload.category ? payload.category + (payload.subcategory ? " / " + payload.subcategory : "") : "-";
-      modeText.textContent = modeLabel(payload.gameMode || (currentRoomState && currentRoomState.gameMode) || "both");
+      roundText.innerText = payload.roomState.currentRound + " / " + payload.roomState.totalRounds;
+      mobileRoundText.innerText = roundText.innerText;
+      categoryText.innerText = payload.category ? payload.category + (payload.subcategory ? " / " + payload.subcategory : "") : "-";
+      modeText.innerText = modeLabel(payload.gameMode || (currentRoomState && currentRoomState.gameMode) || "both");
 
       const myPlayer = getMyPlayer();
       if (mySocketId === currentDrawerId) {
-        statusText.textContent = "أنت ترسم الآن";
-        mobileRoleText.textContent = "أنت رسام";
+        statusText.innerText = "أنت ترسم الآن";
       } else if (myPlayer && currentRoomState && myPlayer.teamId === currentRoomState.activeTeamId) {
-        statusText.textContent = "أنت مخمن الآن";
-        mobileRoleText.textContent = "أنت مخمن";
+        statusText.innerText = "أنت مخمن الآن";
       } else {
-        statusText.textContent = payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
-        mobileRoleText.textContent = "أنت مشاهد";
+        statusText.innerText = payload.drawerName + " يرسم للفريق " + payload.activeTeamName;
       }
 
       spinBtn.disabled = true;
       startLocalTimer(payload.roomState.roundEndsAt);
       updateManualGuessControls();
       updateDrawerPicker();
-      updateRoleBadges();
+      applyUiByRole();
       updateWordUi();
-      updateStealUi();
-      updateMobileSummary();
-      applyMobileViewState();
       appendChat("🎨 بدأت الجولة", true, false);
     });
 
@@ -1962,50 +1917,41 @@ function updateStealUi() {
       currentOutline = payload.outline || "";
       currentHint = payload.hint || "";
       currentChoices = Array.isArray(payload.choices) ? payload.choices : [];
-      wordText.textContent =
+      wordText.innerText =
         "الكلمة: " + payload.word +
         (payload.subcategory ? "\nالتقسيم: " + payload.subcategory : "");
       updateWordUi();
-      applyMobileViewState();
     });
 
     socket.on("game:wordInfo", (payload) => {
       currentOutline = payload.outline || "";
       currentChoices = Array.isArray(payload.choices) ? payload.choices : [];
       updateWordUi();
-      applyMobileViewState();
     });
 
-  socket.on("steal:available", (payload) => {
-  stealModeActive = true;
-  stealTeamName = payload && payload.teamName ? payload.teamName : "";
-  statusText.textContent = "الفريق الثاني يقدر يجاوب الآن";
-  mobileRoleText.textContent = "جاوب الآن";
-  updateRoleBadges();
-  updateStealUi();
-  updateMobileSummary();
-  applyMobileViewState();
-  appendChat("⚡ انتهى وقت الفريق الأساسي — الآن الفريق الثاني يقدر يجاوب", true, false);
-});
+    socket.on("steal:available", (payload) => {
+      stealModeActive = true;
+      stealTeamName = payload && payload.teamName ? payload.teamName : "";
+      statusText.innerText = "الفريق الثاني يقدر يجاوب الآن";
+      applyUiByRole();
+      updateWordUi();
+      appendChat("⚡ انتهى وقت الفريق الأساسي — الآن الفريق الثاني يقدر يجاوب", true, false);
+    });
 
     socket.on("steal:ended", () => {
       stealModeActive = false;
       stealTeamName = "";
-      updateRoleBadges();
-      updateStealUi();
-      updateMobileSummary();
-      applyMobileViewState();
+      applyUiByRole();
+      updateWordUi();
     });
 
     socket.on("round:ended", (payload) => {
       stealModeActive = false;
       stealTeamName = "";
-      statusText.textContent = payload.reason === "timeout" ? "انتهت الجولة" : "تم إنهاء الجولة";
-      wordText.textContent = "الكلمة: " + payload.word;
-      updateStealUi();
-      updateRoleBadges();
-      updateMobileSummary();
-      applyMobileViewState();
+      statusText.innerText = payload.reason === "timeout" ? "انتهت الجولة" : "تم إنهاء الجولة";
+      wordText.innerText = "الكلمة: " + payload.word;
+      applyUiByRole();
+      updateWordUi();
       appendChat(
         payload.reason === "timeout"
           ? "⏰ انتهى الوقت. الكلمة كانت: " + payload.word
@@ -2048,7 +1994,7 @@ function updateStealUi() {
       clearInterval(roundTimer);
       stealModeActive = false;
       stealTeamName = "";
-      winnerText.textContent = payload.winner ? "الفائز: " + payload.winner.name : "الفائز: -";
+      winnerText.innerText = payload.winner ? "الفائز: " + payload.winner.name : "الفائز: -";
       renderScores(payload.teams, currentRoomState ? currentRoomState.players : []);
       showScreen(resultsScreen);
       updateManualGuessControls();
@@ -2072,11 +2018,10 @@ function updateStealUi() {
 
     brushSizeInput.addEventListener("input", (e) => {
       brushSize = Number(e.target.value);
-      brushSizeValue.textContent = brushSize;
+      brushSizeValue.innerText = brushSize;
     });
 
     document.getElementById("teamCount").addEventListener("change", renderTeamNameInputs);
-    window.addEventListener("resize", applyMobileViewState);
 
     initPalette();
     drawWheel();
@@ -2088,7 +2033,7 @@ function updateStealUi() {
       const code = roomParam.toUpperCase();
       document.getElementById("joinCode").value = code;
       createCard.classList.add("hidden");
-      joinTitle.textContent = "دخول الغرفة من الرابط";
+      joinTitle.innerText = "دخول الغرفة من الرابط";
       socket.emit("room:preview", { roomCode: code });
     }
   </script>
