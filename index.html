@@ -1626,23 +1626,33 @@
       link.click();
     }
 
-    function renderChoices(choices) {
-      choicesWrap.innerHTML = "";
-      if (!choices || !choices.length) {
-        choicesWrap.classList.add("hidden");
-        return;
-      }
+   function renderChoices(choices) {
+  choicesWrap.innerHTML = "";
 
-      choicesWrap.classList.remove("hidden");
+  if (!choices || !choices.length) {
+    choicesWrap.classList.add("hidden");
+    return;
+  }
 
-      choices.forEach((choice) => {
-        const safeChoice = String(choice).replace(/'/g, "\\'");
-        const div = document.createElement("div");
-        div.className = "choice-item";
-        div.innerHTML = `<button class="btn-soft" onclick="pickChoice('${safeChoice}')">${choice}</button>`;
-        choicesWrap.appendChild(div);
-      });
-    }
+  choicesWrap.classList.remove("hidden");
+
+  const title = document.createElement("div");
+  title.className = "choice-title";
+  title.textContent = "اختاري الإجابة بالضغط على الزر";
+  choicesWrap.appendChild(title);
+
+  choices.forEach((choice) => {
+    const safeChoice = String(choice).replace(/'/g, "\\'");
+    const div = document.createElement("div");
+    div.className = "choice-item";
+    div.innerHTML = `
+      <button class="choice-btn" onclick="pickChoice('${safeChoice}')">
+        ${choice}
+      </button>
+    `;
+    choicesWrap.appendChild(div);
+  });
+}
 
     function pickChoice(choice) {
       if (!choice) return;
