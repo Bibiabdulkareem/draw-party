@@ -1258,19 +1258,20 @@
       wordPanel.classList.remove("hidden-mobile");
     }
 
-    function updateStealUi() {
-      if (stealModeActive) {
-        stealPill.classList.remove("hidden");
-        stealBox.style.display = "block";
-        stealBox.textContent = stealTeamName
-          ? `⚡ وضع السرقة مفعل الآن للفريق: ${stealTeamName}`
-          : "⚡ وضع السرقة مفعل الآن";
-      } else {
-        stealPill.classList.add("hidden");
-        stealBox.style.display = "none";
-        stealBox.textContent = "";
-      }
-    }
+function updateStealUi() {
+  if (stealModeActive) {
+    stealPill.classList.remove("hidden");
+    stealPill.textContent = "الفريق الثاني يجاوب الآن";
+    stealBox.style.display = "block";
+    stealBox.textContent = stealTeamName
+      ? `⚡ خلص وقت الفريق الأول. الآن ${stealTeamName} يقدر يجاوب ويخطف النقاط`
+      : "⚡ خلص وقت الفريق الأول. الآن الفريق الثاني يقدر يجاوب";
+  } else {
+    stealPill.classList.add("hidden");
+    stealBox.style.display = "none";
+    stealBox.textContent = "";
+  }
+}
 
     function renderPlayers(players, teams) {
       playersList.innerHTML = "";
