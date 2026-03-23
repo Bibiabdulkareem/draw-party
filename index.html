@@ -1949,17 +1949,17 @@
       applyMobileViewState();
     });
 
-    socket.on("steal:available", (payload) => {
-      stealModeActive = true;
-      stealTeamName = payload && payload.teamName ? payload.teamName : "";
-      statusText.textContent = "وضع السرقة مفعل";
-      mobileRoleText.textContent = "سرقة";
-      updateRoleBadges();
-      updateStealUi();
-      updateMobileSummary();
-      applyMobileViewState();
-      appendChat("⚡ بدأ وضع السرقة", true, false);
-    });
+  socket.on("steal:available", (payload) => {
+  stealModeActive = true;
+  stealTeamName = payload && payload.teamName ? payload.teamName : "";
+  statusText.textContent = "الفريق الثاني يقدر يجاوب الآن";
+  mobileRoleText.textContent = "جاوب الآن";
+  updateRoleBadges();
+  updateStealUi();
+  updateMobileSummary();
+  applyMobileViewState();
+  appendChat("⚡ انتهى وقت الفريق الأساسي — الآن الفريق الثاني يقدر يجاوب", true, false);
+});
 
     socket.on("steal:ended", () => {
       stealModeActive = false;
