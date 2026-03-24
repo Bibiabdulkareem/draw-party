@@ -1154,7 +1154,18 @@
       startAfterRules = !!shouldStart;
       rulesOverlay.classList.add("active");
     }
+   function openPay() {
+  document.getElementById("payOverlay").classList.add("active");
+}
 
+function closePay() {
+  document.getElementById("payOverlay").classList.remove("active");
+}
+
+function unlockGame() {
+  closePay();
+  socket.emit("room:unlock", { roomCode });
+}
     function closeRules() {
       startAfterRules = false;
       rulesOverlay.classList.remove("active");
