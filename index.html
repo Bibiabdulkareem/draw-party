@@ -610,8 +610,30 @@
     }
 
     @media (max-width: 640px) {
-      body { padding: 10px; }
-      .hero, .card, .side-card, .board-wrap, .overlay-card { .overlay-card {
+      body { padding: 10px; } 
+            .hero {
+        padding: 16px;
+      }
+
+      .phone-mock {
+        width: min(240px, 100%);
+      }
+
+      .phone-screen {
+        min-height: 280px;
+        padding: 12px;
+      }
+
+      .phone-card strong {
+        font-size: 22px;
+        margin: 10px 0;
+      }
+
+      .phone-btn {
+        padding: 10px;
+        font-size: 14px;
+      }
+     .hero, .card, .side-card, .board-wrap, .overlay-card {
         max-height: 85vh;
         padding: 16px;
       } }
