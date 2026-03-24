@@ -1910,6 +1910,12 @@ function unlockGame() {
     });
 
     socket.on("game:roundStarted", (payload) => {
+      if (currentRoomState && !currentRoomState.isPaid) {
+  if (currentRoomState.currentRound > 4) {
+    openPay();
+    return;
+  }
+}
       currentDrawerId = payload.roomState.activeDrawerId;
       roundText.innerText = payload.roomState.currentRound + " / " + payload.roomState.totalRounds;
       mobileRoundText.innerText = roundText.innerText;
