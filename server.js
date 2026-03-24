@@ -506,7 +506,24 @@ function roomPreview(room) {
   };
 }
 
-io.on("connection", (socket) => {
+io.on("connection", (socket) => { 
+    socket.on("room:rejoin", (payload = {}) => {
+    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+    const name = String(payload.name || "").trim();
+
+    const room = rooms.get(roomCode);
+    if (!room || !name) return;
+
+    const existingPlayer = room.players.find((player) => player.name === name);
+    if (!existingPlayer) return;
+
+    existingPlayer.id = socket.id;
+    socket.join(roomCode);
+
+    systemMessage(roomCode, `🔄 ${name} رجع للغرفة`, "rejoin");
+    emitRoomState(roomCode);
+  }); 
+  
   socket.on("room:preview", (payload = {}) => {
     const roomCode = String(payload.roomCode || "").trim().toUpperCase();
     const room = rooms.get(roomCode);
