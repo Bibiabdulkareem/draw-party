@@ -7,11 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (_req, res) => {
+app.get("/", function (_req, res) {
   res.send("Ayam Al-Taybeen server running");
 });
 
-app.get("/health", (_req, res) => {
+app.get("/health", function (_req, res) {
   res.json({ ok: true });
 });
 
@@ -90,7 +90,7 @@ const CATEGORY_TREE = {
       "بحرية": ["سفينة", "قارب", "يخت", "زورق", "غواصة", "عبارة"]
     }
   },
-"طبيعة": {
+  "طبيعة": {
     icon: "🌿",
     subcategories: {
       "سماء": ["شمس", "قمر", "نجمة", "سحابة", "مطر", "ثلج", "قوس قزح", "برق"],
@@ -108,11 +108,15 @@ const CATEGORY_TREE = {
   }
 };
 
-const CATEGORY_META = Object.entries(CATEGORY_TREE).map(([name, value]) => ({
-  name,
-  icon: value.icon,
-  subcategories: Object.keys(value.subcategories)
-}));
+const CATEGORY_META = Object.entries(CATEGORY_TREE).map(function (entry) {
+  const name = entry[0];
+  const value = entry[1];
+  return {
+    name: name,
+    icon: value.icon,
+    subcategories: Object.keys(value.subcategories)
+  };
+});
 
 const rooms = new Map();
 
@@ -124,20 +128,25 @@ function createRoomCode() {
   return code;
 }
 
-function buildTeams(teamCount, teamNames = []) {
-  return Array.from({ length: teamCount }, (_, index) => ({
-    id: `team-${index + 1}`,
-    name: String(teamNames[index] || `الفريق ${index + 1}`).trim() || `الفريق ${index + 1}`,
-    score: 0
-  }));
+function buildTeams(teamCount, teamNames) {
+  const safeNames = Array.isArray(teamNames) ? teamNames : [];
+  return Array.from({ length: teamCount }, function (_, index) {
+    return {
+      id: "team-" + (index + 1),
+      name: String(safeNames[index] || ("الفريق " + (index + 1))).trim() || ("الفريق " + (index + 1)),
+      score: 0
+    };
+  });
 }
 
 function getPlayerById(room, playerId) {
-  return room.players.find((player) => player.id === playerId) || null;
+  return room.players.find(function (player) {
+    return player.id === playerId;
+  }) || null;
 }
 
-function normalizeArabic(text = "") {
-  return String(text)
+function normalizeArabic(text) {
+  return String(text || "")
     .trim()
     .toLowerCase()
     .replace(/[.,!؟]/g, "")
@@ -157,34 +166,42 @@ function pickFrom(array) {
 
 function makeOutline(word) {
   const parts = String(word).split(" ");
-  return parts.map((part) => "_ ".repeat(part.length).trim()).join("   /   ");
+  return parts.map(function (part) {
+    return "_ ".repeat(part.length).trim();
+  }).join("   /   ");
 }
 
-function buildHint(category, _subcategory, word) {
+function buildHint(category, subcategory, word) {
   const letterCount = String(word).replace(/\s/g, "").length;
   if (category === "أعلام") {
-    return `علم دولة - عدد الأحرف: ${letterCount}`;
+    return "علم دولة - عدد الأحرف: " + letterCount;
   }
-  return `عدد الأحرف: ${letterCount}`;
+  return "عدد الأحرف: " + letterCount;
 }
 
 function sampleChoices(answer) {
   const pool = [];
-  Object.values(CATEGORY_TREE).forEach((category) => {
-    Object.values(category.subcategories).forEach((items) => {
-      pool.push(...items);
+
+  Object.values(CATEGORY_TREE).forEach(function (category) {
+    Object.values(category.subcategories).forEach(function (items) {
+      pool.push.apply(pool, items);
     });
   });
 
-  const unique = Array.from(new Set(pool.filter((item) => item !== answer)));
+  const unique = Array.from(new Set(pool.filter(function (item) {
+    return item !== answer;
+  })));
+
   const distractors = [];
   while (unique.length && distractors.length < 3) {
     const index = Math.floor(Math.random() * unique.length);
     distractors.push(unique.splice(index, 1)[0]);
   }
 
-  const choices = [answer, ...distractors];
-  return choices.sort(() => Math.random() - 0.5);
+  const choices = [answer].concat(distractors);
+  return choices.sort(function () {
+    return Math.random() - 0.5;
+  });
 }
 
 function chooseRoundContent() {
@@ -196,7 +213,7 @@ function chooseRoundContent() {
   return {
     category: categoryName,
     subcategory: subcategoryName,
-    word,
+    word: word,
     choices: sampleChoices(word),
     outline: makeOutline(word),
     hint: buildHint(categoryName, subcategoryName, word)
@@ -217,17 +234,16 @@ function buildRoundPayload(room) {
 }
 
 function publicPlayers(room) {
-  return room.players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    teamId: player.teamId,
-    isHost: player.isHost,
-    streak: player.streak || 0,
-    role:
-      player.id === room.activeDrawerId
-        ? "drawer"
-        : "guesser"
-  }));
+  return room.players.map(function (player) {
+    return {
+      id: player.id,
+      name: player.name,
+      teamId: player.teamId,
+      isHost: player.isHost,
+      streak: player.streak || 0,
+      role: player.id === room.activeDrawerId ? "drawer" : "guesser"
+    };
+  });
 }
 
 function emitRoomState(roomCode) {
@@ -259,10 +275,10 @@ function emitRoomState(roomCode) {
   });
 }
 
-function systemMessage(roomCode, text, type = "system") {
+function systemMessage(roomCode, text, type) {
   io.to(roomCode).emit("system:message", {
-    text,
-    type,
+    text: text,
+    type: type || "system",
     at: Date.now()
   });
 }
@@ -279,7 +295,7 @@ function clearRoundTimer(room) {
   }
 }
 
-function finishGame(roomCode, reason = "انتهت اللعبة") {
+function finishGame(roomCode, reason) {
   const room = rooms.get(roomCode);
   if (!room) return;
 
@@ -288,15 +304,17 @@ function finishGame(roomCode, reason = "انتهت اللعبة") {
   room.chooserTeamId = null;
   clearRoundTimer(room);
 
-  const winner = room.teams.slice().sort((a, b) => b.score - a.score)[0] || null;
+  const winner = room.teams.slice().sort(function (a, b) {
+    return b.score - a.score;
+  })[0] || null;
 
   io.to(roomCode).emit("game:finished", {
-    winner,
+    winner: winner,
     teams: room.teams,
-    reason
+    reason: reason || "انتهت اللعبة"
   });
 
-  systemMessage(roomCode, `🏁 ${reason}`, "finish");
+  systemMessage(roomCode, "🏁 " + (reason || "انتهت اللعبة"), "finish");
   emitRoomState(roomCode);
 }
 
@@ -337,7 +355,7 @@ function prepareNextRound(roomCode) {
     activeTeamId: activeTeam.id
   });
 
-  systemMessage(roomCode, `🎯 دور ${activeTeam.name} لاختيار الرسام`, "drawer");
+  systemMessage(roomCode, "🎯 دور " + activeTeam.name + " لاختيار الرسام", "drawer");
   emitRoomState(roomCode);
 }
 
@@ -355,7 +373,9 @@ function startRoundAfterWheel(roomCode) {
 
   io.to(roomCode).emit("draw:clear");
 
-  const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
+  const activeTeam = room.teams.find(function (team) {
+    return team.id === room.activeTeamId;
+  });
   const drawer = getPlayerById(room, room.activeDrawerId);
 
   io.to(roomCode).emit("game:roundStarted", {
@@ -379,7 +399,7 @@ function startRoundAfterWheel(roomCode) {
     });
   }
 
-  room.players.forEach((player) => {
+  room.players.forEach(function (player) {
     if (player.id !== room.activeDrawerId) {
       io.to(player.id).emit("game:wordInfo", {
         outline: room.settings.gameMode === "both" ? room.roundOutline : "",
@@ -390,10 +410,10 @@ function startRoundAfterWheel(roomCode) {
     }
   });
 
-  systemMessage(roomCode, `🎨 بدأت الجولة والجميع يقدر يجاوب`, "round");
+  systemMessage(roomCode, "🎨 بدأت الجولة والجميع يقدر يجاوب", "round");
   emitRoomState(roomCode);
 
-  room.roundTimer = setTimeout(() => {
+  room.roundTimer = setTimeout(function () {
     handleRoundTimeout(roomCode);
   }, room.settings.roundSeconds * 1000);
 }
@@ -407,16 +427,17 @@ function handleRoundTimeout(roomCode) {
     word: room.activeWord
   });
 
-  systemMessage(roomCode, `⏱️ انتهى الوقت. الكلمة كانت: ${room.activeWord}`, "timeout");
+  systemMessage(roomCode, "⏱️ انتهى الوقت. الكلمة كانت: " + room.activeWord, "timeout");
   emitRoomState(roomCode);
 
-  setTimeout(() => {
+  setTimeout(function () {
     prepareNextRound(roomCode);
   }, 1800);
 }
 
 function applyWrongGuess(room, player) {
   if (!player) return;
+
   player.streak = 0;
 
   io.to(room.code).emit("chat:wrong", {
@@ -424,7 +445,7 @@ function applyWrongGuess(room, player) {
     streak: 0
   });
 
-  systemMessage(room.code, `❌ ${player.name} إجابته خطأ`, "wrong");
+  systemMessage(room.code, "❌ " + player.name + " إجابته خطأ", "wrong");
   emitRoomState(room.code);
 }
 
@@ -432,8 +453,11 @@ function applyCorrectGuess(roomCode, player, answerText) {
   const room = rooms.get(roomCode);
   if (!room || room.status !== "playing" || !player) return;
   if (player.id === room.activeDrawerId) return;
+  if (room.roundResolved) return;
 
-  const playerTeam = room.teams.find((team) => team.id === player.teamId);
+  const playerTeam = room.teams.find(function (team) {
+    return team.id === player.teamId;
+  });
   if (!playerTeam) return;
 
   const elapsedMs = Date.now() - room.roundStartedAt;
@@ -446,18 +470,24 @@ function applyCorrectGuess(roomCode, player, answerText) {
   player.streak = (player.streak || 0) + 1;
   playerTeam.score += added;
 
+  room.players.forEach(function (otherPlayer) {
+    if (otherPlayer.id !== player.id && otherPlayer.id !== room.activeDrawerId) {
+      otherPlayer.streak = otherPlayer.streak || 0;
+    }
+  });
+
   io.to(roomCode).emit("chat:correct", {
     playerName: player.name,
     answer: answerText || room.activeWord,
     guessingTeam: playerTeam.name,
     scoreAdded: added,
     streak: player.streak,
-    isFast
+    isFast: isFast
   });
 
   systemMessage(
     roomCode,
-    `✅ ${player.name} جاوب صح أول واحد +${added} (${playerTeam.name})`,
+    "✅ " + player.name + " جاوب صح أول واحد +" + added + " (" + playerTeam.name + ")",
     "correct"
   );
 
@@ -469,25 +499,31 @@ function applyCorrectGuess(roomCode, player, answerText) {
   clearRoundTimer(room);
   emitRoomState(roomCode);
 
-  setTimeout(() => {
+  setTimeout(function () {
     prepareNextRound(roomCode);
   }, 1800);
 }
 
-function sanitizeSettings(payload = {}) {
-  const totalRounds = SETTING_OPTIONS.totalRounds.includes(Number(payload.totalRounds))
-    ? Number(payload.totalRounds)
+function sanitizeSettings(payload) {
+  const safePayload = payload || {};
+
+  const totalRounds = SETTING_OPTIONS.totalRounds.includes(Number(safePayload.totalRounds))
+    ? Number(safePayload.totalRounds)
     : DEFAULT_SETTINGS.totalRounds;
 
-  const roundSeconds = SETTING_OPTIONS.roundSeconds.includes(Number(payload.roundSeconds))
-    ? Number(payload.roundSeconds)
+  const roundSeconds = SETTING_OPTIONS.roundSeconds.includes(Number(safePayload.roundSeconds))
+    ? Number(safePayload.roundSeconds)
     : DEFAULT_SETTINGS.roundSeconds;
 
-  const gameMode = SETTING_OPTIONS.gameMode.includes(payload.gameMode)
-    ? payload.gameMode
+  const gameMode = SETTING_OPTIONS.gameMode.includes(safePayload.gameMode)
+    ? safePayload.gameMode
     : DEFAULT_SETTINGS.gameMode;
 
-  return { totalRounds, roundSeconds, gameMode };
+  return {
+    totalRounds: totalRounds,
+    roundSeconds: roundSeconds,
+    gameMode: gameMode
+  };
 }
 
 function roomPreview(room) {
@@ -498,34 +534,43 @@ function roomPreview(room) {
     maxPlayers: room.maxPlayers,
     teamCount: room.teamCount,
     settings: room.settings,
-    teams: room.teams.map((team) => ({
-      id: team.id,
-      name: team.name,
-      playersCount: room.players.filter((p) => p.teamId === team.id).length
-    }))
+    teams: room.teams.map(function (team) {
+      return {
+        id: team.id,
+        name: team.name,
+        playersCount: room.players.filter(function (p) {
+          return p.teamId === team.id;
+        }).length
+      };
+    })
   };
 }
 
-io.on("connection", (socket) => { 
-    socket.on("room:rejoin", (payload = {}) => {
-    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
-    const name = String(payload.name || "").trim();
+io.on("connection", function (socket) {
+  socket.on("room:rejoin", function (payload) {
+    const safePayload = payload || {};
+    const roomCode = String(safePayload.roomCode || "").trim().toUpperCase();
+    const name = String(safePayload.name || "").trim();
 
     const room = rooms.get(roomCode);
     if (!room || !name) return;
 
-    const existingPlayer = room.players.find((player) => player.name === name);
+    const existingPlayer = room.players.find(function (player) {
+      return player.name === name;
+    });
+
     if (!existingPlayer) return;
 
     existingPlayer.id = socket.id;
     socket.join(roomCode);
 
-    systemMessage(roomCode, `🔄 ${name} رجع للغرفة`, "rejoin");
+    systemMessage(roomCode, "🔄 " + name + " رجع للغرفة", "rejoin");
     emitRoomState(roomCode);
-  }); 
-  
-  socket.on("room:preview", (payload = {}) => {
-    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+  });
+
+  socket.on("room:preview", function (payload) {
+    const safePayload = payload || {};
+    const roomCode = String(safePayload.roomCode || "").trim().toUpperCase();
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -536,13 +581,14 @@ io.on("connection", (socket) => {
     socket.emit("room:preview:result", roomPreview(room));
   });
 
-  socket.on("room:create", (payload = {}) => {
-    const name = String(payload.name || "هوست").trim().slice(0, 24) || "هوست";
-    const roomName = String(payload.roomName || "غرفة أيام الطيبين").trim().slice(0, 32) || "غرفة أيام الطيبين";
-    const maxPlayers = Math.max(2, Math.min(12, Number(payload.maxPlayers) || 6));
-    const teamCount = Math.max(2, Math.min(4, Number(payload.teamCount) || 2));
-    const settings = sanitizeSettings(payload.settings || payload);
-    const teamNames = Array.isArray(payload.teamNames) ? payload.teamNames.slice(0, teamCount) : [];
+  socket.on("room:create", function (payload) {
+    const safePayload = payload || {};
+    const name = String(safePayload.name || "هوست").trim().slice(0, 24) || "هوست";
+    const roomName = String(safePayload.roomName || "غرفة أيام الطيبين").trim().slice(0, 32) || "غرفة أيام الطيبين";
+    const maxPlayers = Math.max(2, Math.min(12, Number(safePayload.maxPlayers) || 6));
+    const teamCount = Math.max(2, Math.min(4, Number(safePayload.teamCount) || 2));
+    const settings = sanitizeSettings(safePayload.settings || safePayload);
+    const teamNames = Array.isArray(safePayload.teamNames) ? safePayload.teamNames.slice(0, teamCount) : [];
     const roomCode = createRoomCode();
 
     const room = {
@@ -550,9 +596,9 @@ io.on("connection", (socket) => {
       name: roomName,
       hostId: socket.id,
       status: "lobby",
-      maxPlayers,
-      teamCount,
-      settings,
+      maxPlayers: maxPlayers,
+      teamCount: teamCount,
+      settings: settings,
       currentRound: 0,
       activeTeamId: null,
       activeDrawerId: null,
@@ -573,7 +619,7 @@ io.on("connection", (socket) => {
       players: [
         {
           id: socket.id,
-          name,
+          name: name,
           teamId: "team-1",
           isHost: true,
           streak: 0
@@ -584,15 +630,16 @@ io.on("connection", (socket) => {
     rooms.set(roomCode, room);
     socket.join(roomCode);
 
-    socket.emit("room:created", { roomCode });
-    systemMessage(roomCode, `🚪 تم إنشاء الغرفة ${roomName}`, "room");
+    socket.emit("room:created", { roomCode: roomCode });
+    systemMessage(roomCode, "🚪 تم إنشاء الغرفة " + roomName, "room");
     emitRoomState(roomCode);
   });
 
-  socket.on("room:join", (payload = {}) => {
-    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
-    const name = String(payload.name || "لاعب").trim().slice(0, 24) || "لاعب";
-    const preferredTeamId = String(payload.teamId || "");
+  socket.on("room:join", function (payload) {
+    const safePayload = payload || {};
+    const roomCode = String(safePayload.roomCode || "").trim().toUpperCase();
+    const name = String(safePayload.name || "لاعب").trim().slice(0, 24) || "لاعب";
+    const preferredTeamId = String(safePayload.teamId || "");
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -610,39 +657,44 @@ io.on("connection", (socket) => {
       return;
     }
 
-    let chosenTeam = room.teams.find((t) => t.id === preferredTeamId);
+    let chosenTeam = room.teams.find(function (t) {
+      return t.id === preferredTeamId;
+    });
+
     if (!chosenTeam) {
-      chosenTeam = room.teams
-        .slice()
-        .sort((a, b) => {
-          const aCount = room.players.filter((p) => p.teamId === a.id).length;
-          const bCount = room.players.filter((p) => p.teamId === b.id).length;
-          return aCount - bCount;
-        })[0];
+      chosenTeam = room.teams.slice().sort(function (a, b) {
+        const aCount = room.players.filter(function (p) { return p.teamId === a.id; }).length;
+        const bCount = room.players.filter(function (p) { return p.teamId === b.id; }).length;
+        return aCount - bCount;
+      })[0];
     }
 
     room.players.push({
       id: socket.id,
-      name,
+      name: name,
       teamId: chosenTeam.id,
       isHost: false,
       streak: 0
     });
 
     socket.join(roomCode);
-    systemMessage(roomCode, `👋 ${name} دخل الغرفة إلى ${chosenTeam.name}`, "join");
+    systemMessage(roomCode, "👋 " + name + " دخل الغرفة إلى " + chosenTeam.name, "join");
     emitRoomState(roomCode);
   });
 
-  socket.on("room:leave", (payload = {}) => {
-    const roomCode = String(payload.roomCode || "").trim().toUpperCase();
+  socket.on("room:leave", function (payload) {
+    const safePayload = payload || {};
+    const roomCode = String(safePayload.roomCode || "").trim().toUpperCase();
     const room = rooms.get(roomCode);
     if (!room) return;
 
     const leavingPlayer = getPlayerById(room, socket.id);
     if (!leavingPlayer) return;
 
-    room.players = room.players.filter((player) => player.id !== socket.id);
+    room.players = room.players.filter(function (player) {
+      return player.id !== socket.id;
+    });
+
     socket.leave(roomCode);
 
     if (!room.players.length) {
@@ -656,19 +708,20 @@ io.on("connection", (socket) => {
       room.players[0].isHost = true;
     }
 
-    systemMessage(roomCode, `🚪 ${leavingPlayer.name} خرج من الغرفة`, "leave");
+    systemMessage(roomCode, "🚪 " + leavingPlayer.name + " خرج من الغرفة", "leave");
     emitRoomState(roomCode);
   });
 
-  socket.on("host:update-settings", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("host:update-settings", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
 
-    room.settings = sanitizeSettings(payload.settings || {});
-    room.name = String(payload.roomName || room.name).trim().slice(0, 32) || room.name;
+    room.settings = sanitizeSettings(safePayload.settings || {});
+    room.name = String(safePayload.roomName || room.name).trim().slice(0, 32) || room.name;
 
-    if (Array.isArray(payload.teamNames)) {
-      payload.teamNames.slice(0, room.teams.length).forEach((name, index) => {
+    if (Array.isArray(safePayload.teamNames)) {
+      safePayload.teamNames.slice(0, room.teams.length).forEach(function (name, index) {
         room.teams[index].name = String(name || room.teams[index].name).trim() || room.teams[index].name;
       });
     }
@@ -677,20 +730,27 @@ io.on("connection", (socket) => {
     emitRoomState(room.code);
   });
 
-  socket.on("host:assign-team", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("host:assign-team", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
 
-    const player = room.players.find((item) => item.id === payload.playerId);
-    const team = room.teams.find((item) => item.id === payload.teamId);
+    const player = room.players.find(function (item) {
+      return item.id === safePayload.playerId;
+    });
+    const team = room.teams.find(function (item) {
+      return item.id === safePayload.teamId;
+    });
+
     if (!player || !team) return;
 
     player.teamId = team.id;
     emitRoomState(room.code);
   });
 
-  socket.on("room:start", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("room:start", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.hostId !== socket.id || room.status !== "lobby") return;
 
     if (room.players.length < 2) {
@@ -702,8 +762,9 @@ io.on("connection", (socket) => {
     prepareNextRound(room.code);
   });
 
-  socket.on("drawer:choose", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("drawer:choose", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "choosing-drawer") return;
 
     const chooser = getPlayerById(room, socket.id);
@@ -712,13 +773,15 @@ io.on("connection", (socket) => {
     const canChoose = chooser.teamId === room.chooserTeamId || room.hostId === socket.id;
     if (!canChoose) return;
 
-    const drawer = getPlayerById(room, payload.playerId);
+    const drawer = getPlayerById(room, safePayload.playerId);
     if (!drawer || drawer.teamId !== room.chooserTeamId) return;
 
     room.activeDrawerId = drawer.id;
     room.status = "spinning";
 
-    const activeTeam = room.teams.find((team) => team.id === room.activeTeamId);
+    const activeTeam = room.teams.find(function (team) {
+      return team.id === room.activeTeamId;
+    });
 
     io.to(room.code).emit("game:prepareRound", {
       roundNumber: room.currentRound,
@@ -727,12 +790,13 @@ io.on("connection", (socket) => {
       drawerName: drawer.name
     });
 
-    systemMessage(room.code, `🎯 تم اختيار ${drawer.name} كرسام`, "drawer");
+    systemMessage(room.code, "🎯 تم اختيار " + drawer.name + " كرسام", "drawer");
     emitRoomState(room.code);
   });
 
-  socket.on("wheel:spin", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("wheel:spin", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "spinning" || room.activeDrawerId !== socket.id) return;
 
     const result = chooseRoundContent();
@@ -749,43 +813,51 @@ io.on("connection", (socket) => {
       icon: CATEGORY_TREE[result.category].icon
     });
 
-    systemMessage(room.code, `🎡 توقفت العجلة على ${room.activeCategory} / ${room.activeSubcategory}`, "wheel");
+    systemMessage(
+      room.code,
+      "🎡 توقفت العجلة على " + room.activeCategory + " / " + room.activeSubcategory,
+      "wheel"
+    );
 
-    setTimeout(() => {
+    setTimeout(function () {
       startRoundAfterWheel(room.code);
     }, 2200);
   });
 
-  socket.on("draw:move", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("draw:move", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "playing" || room.activeDrawerId !== socket.id) return;
 
     socket.to(room.code).emit("draw:move", {
-      x1: payload.x1,
-      y1: payload.y1,
-      x2: payload.x2,
-      y2: payload.y2,
-      color: payload.color,
-      lineWidth: payload.lineWidth,
-      tool: payload.tool || "pen"
+      x1: safePayload.x1,
+      y1: safePayload.y1,
+      x2: safePayload.x2,
+      y2: safePayload.y2,
+      color: safePayload.color,
+      lineWidth: safePayload.lineWidth,
+      tool: safePayload.tool || "pen"
     });
   });
 
-  socket.on("draw:clear", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("draw:clear", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.activeDrawerId !== socket.id) return;
+
     io.to(room.code).emit("draw:clear");
     systemMessage(room.code, "🧽 تم مسح اللوحة", "draw");
   });
 
-  socket.on("chat:send", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("chat:send", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "playing") return;
 
     const sender = getPlayerById(room, socket.id);
     if (!sender) return;
 
-    const message = String(payload.text || "").trim();
+    const message = String(safePayload.text || "").trim();
     if (!message) return;
 
     if (sender.id === room.activeDrawerId) {
@@ -806,7 +878,7 @@ io.on("connection", (socket) => {
       at: Date.now()
     });
 
-    systemMessage(room.code, `💬 ${sender.name} حاول يجاوب`, "guess");
+    systemMessage(room.code, "💬 " + sender.name + " حاول يجاوب", "guess");
 
     const normalizedInput = normalizeArabic(message);
     const normalizedWord = normalizeArabic(room.activeWord);
@@ -818,24 +890,25 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("guess:choice", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("guess:choice", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "playing") return;
 
     const sender = getPlayerById(room, socket.id);
     if (!sender || sender.id === room.activeDrawerId) return;
 
-    const choice = String(payload.choice || "").trim();
+    const choice = String(safePayload.choice || "").trim();
     if (!choice) return;
 
     io.to(room.code).emit("chat:message", {
       playerName: sender.name,
-      text: `اختار: ${choice}`,
+      text: "اختار: " + choice,
       teamId: sender.teamId,
       at: Date.now()
     });
 
-    systemMessage(room.code, `🧩 ${sender.name} ضغط اختيار`, "guess");
+    systemMessage(room.code, "🧩 " + sender.name + " ضغط اختيار", "guess");
 
     if (normalizeArabic(choice) === normalizeArabic(room.activeWord)) {
       applyCorrectGuess(room.code, sender, choice);
@@ -844,8 +917,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("guess:manual", (payload = {}) => {
-    const room = rooms.get(payload.roomCode);
+  socket.on("guess:manual", function (payload) {
+    const safePayload = payload || {};
+    const room = rooms.get(safePayload.roomCode);
     if (!room || room.status !== "playing") return;
 
     const canJudge = socket.id === room.activeDrawerId || socket.id === room.hostId;
@@ -854,7 +928,7 @@ io.on("connection", (socket) => {
     const player = getPlayerById(room, room.lastGuess.playerId);
     if (!player) return;
 
-    if (payload.isCorrect) {
+    if (safePayload.isCorrect) {
       applyCorrectGuess(room.code, player, room.lastGuess.text);
     } else {
       applyWrongGuess(room, player);
@@ -862,19 +936,27 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
-    for (const [roomCode, room] of rooms.entries()) {
+  socket.on("disconnect", function () {
+    for (const entry of rooms.entries()) {
+      const roomCode = entry[0];
+      const room = entry[1];
       const leavingPlayer = getPlayerById(room, socket.id);
+
       if (!leavingPlayer) continue;
 
-      setTimeout(() => {
+      setTimeout(function () {
         const freshRoom = rooms.get(roomCode);
         if (!freshRoom) return;
 
-        const stillSamePlayer = freshRoom.players.find((player) => player.id === socket.id);
+        const stillSamePlayer = freshRoom.players.find(function (player) {
+          return player.id === socket.id;
+        });
+
         if (!stillSamePlayer) return;
 
-        freshRoom.players = freshRoom.players.filter((player) => player.id !== socket.id);
+        freshRoom.players = freshRoom.players.filter(function (player) {
+          return player.id !== socket.id;
+        });
 
         if (!freshRoom.players.length) {
           clearRoundTimer(freshRoom);
@@ -887,21 +969,24 @@ io.on("connection", (socket) => {
           freshRoom.players[0].isHost = true;
         }
 
-        if (freshRoom.activeDrawerId === socket.id && ["choosing-drawer", "spinning", "playing"].includes(freshRoom.status)) {
+        if (
+          freshRoom.activeDrawerId === socket.id &&
+          ["choosing-drawer", "spinning", "playing"].includes(freshRoom.status)
+        ) {
           clearRoundTimer(freshRoom);
           systemMessage(roomCode, "🚨 الرسام خرج من الغرفة وتم تجاوز الجولة", "leave");
           prepareNextRound(roomCode);
           return;
         }
 
-        systemMessage(roomCode, `🚪 ${leavingPlayer.name} طلع من الغرفة`, "leave");
+        systemMessage(roomCode, "🚪 " + leavingPlayer.name + " طلع من الغرفة", "leave");
         emitRoomState(roomCode);
       }, 3000);
     }
   });
-  
 });
+
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
- console.log("Server running on port " + PORT);⁠
+server.listen(PORT, function () {
+  console.log("Server running on port " + PORT);
 });
