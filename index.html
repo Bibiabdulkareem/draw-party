@@ -1178,7 +1178,7 @@
       return currentRoomState.players.find((p) => p.id === mySocketId) || null;
     }
 
-    function getCurrentRole() {
+       function getCurrentRole() {
       const me = getMyPlayer();
       if (!me || !currentRoomState) return "viewer";
       if (mySocketId === currentDrawerId) return "drawer";
