@@ -611,7 +611,10 @@
 
     @media (max-width: 640px) {
       body { padding: 10px; }
-      .hero, .card, .side-card, .board-wrap, .overlay-card { border-radius: 22px; }
+      .hero, .card, .side-card, .board-wrap, .overlay-card { .overlay-card {
+        max-height: 85vh;
+        padding: 16px;
+      } }
       #board { height: 44vh; }
       .topbar { flex-direction: column; align-items: stretch; }
       .row { width: 100%; }
