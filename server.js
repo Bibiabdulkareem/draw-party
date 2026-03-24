@@ -730,7 +730,18 @@ io.on("connection", function (socket) {
     systemMessage(room.code, "⚙️ تم تحديث إعدادات الغرفة", "settings");
     emitRoomState(room.code);
   });
+socket.on("room:unlock", ({ roomCode }) => {
+  const room = rooms.get(roomCode);
+  if (!room) return;
 
+  room.isPaid = true;
+
+  io.to(roomCode).emit("system:message", {
+    text: "💰 تم فتح اللعبة الكاملة!"
+  });
+
+  emitRoomState(roomCode);
+});
   socket.on("host:assign-team", function (payload) {
     const safePayload = payload || {};
     const room = rooms.get(safePayload.roomCode);
