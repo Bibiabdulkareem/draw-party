@@ -1724,14 +1724,14 @@
       fillJoinTeams(payload.teams || []);
     });
 
-    socket.on("room:created", (payload) => {
-      roomCode = payload.roomCode;
-      localStorage.setItem("ayat_room_code", roomCode);
-      localStorage.setItem("ayat_room_name", playerName);
-      roomCodeText.innerText = "الغرفة: " + roomCode;
-      roomLinkText.innerText = window.location.origin + "?room=" + roomCode;
-      showScreen(lobbyScreen);
-    });
+ socket.on("room:created", (payload) => {
+  roomCode = payload.roomCode;
+  localStorage.setItem("ayat_room_code", roomCode);
+  localStorage.setItem("ayat_player_name", playerName);
+  roomCodeText.innerText = "الغرفة: " + roomCode;
+  roomLinkText.innerText = window.location.origin + "?room=" + roomCode;
+  showScreen(lobbyScreen);
+});
 
     socket.on("room:state", (state) => {
       currentRoomState = state;
