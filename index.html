@@ -1223,15 +1223,21 @@
       mobileRoundText.textContent = roundText.textContent || "-";
     }
 
-    function applyUiByRole() {
+      function applyUiByRole() {
       const role = getCurrentRole();
       const isDrawer = role === "drawer";
       const isGuesser = role === "guesser";
 
       drawingTools.style.display = isDrawer ? "flex" : "none";
       wheelPanel.style.display = isDrawer ? "block" : "none";
-      chatInput.parentElement.style.display = isDrawer ? "none" : "flex";
-      choicesWrap.style.display = isGuesser ? "grid" : "none";
+
+      if (chatInput && chatInput.parentElement) {
+        chatInput.parentElement.style.display = isDrawer ? "none" : "flex";
+      }
+
+      if (!isGuesser) {
+        choicesWrap.classList.add("hidden");
+      }
 
       updateRoleBadges();
       updateMobileSummary();
