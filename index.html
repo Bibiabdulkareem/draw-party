@@ -1399,8 +1399,10 @@
       if (roomCode) {
         socket.emit("room:leave", { roomCode });
       }
+
       localStorage.removeItem("ayat_room_code");
-      localStorage.removeItem("ayat_room_name");
+      localStorage.removeItem("ayat_player_name");
+
       goHome();
     }
 
