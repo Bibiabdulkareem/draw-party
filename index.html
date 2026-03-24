@@ -1382,7 +1382,8 @@
         homeError.innerText = "حطي كود الغرفة";
         return;
       }
-
+      localStorage.setItem("ayat_room_code", roomCode);
+      localStorage.setItem("ayat_player_name", playerName);
       socket.emit("room:join", {
         roomCode,
         name: playerName,
