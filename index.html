@@ -1955,7 +1955,26 @@
     initPalette();
     drawWheel();
     renderTeamNameInputs();
+    window.addEventListener("load", () => {
+      const savedRoom = localStorage.getItem("ayat_room_code");
+      const savedName = localStorage.getItem("ayat_player_name");
 
+      if (savedRoom && savedName) {
+        roomCode = savedRoom;
+        playerName = savedName;
+
+        const joinNameInput = document.getElementById("joinName");
+        const joinCodeInput = document.getElementById("joinCode");
+
+        if (joinNameInput) joinNameInput.value = savedName;
+        if (joinCodeInput) joinCodeInput.value = savedRoom;
+
+        socket.emit("room:rejoin", {
+          roomCode: savedRoom,
+          name: savedName
+        });
+      }
+    });
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get("room");
     if (roomParam) {
