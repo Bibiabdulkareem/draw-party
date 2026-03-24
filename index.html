@@ -1909,13 +1909,12 @@ function unlockGame() {
       appendChat("🎡 توقفت العجلة على: " + payload.category + (payload.subcategory ? " / " + payload.subcategory : ""), true, false);
     });
 
-    socket.on("game:roundStarted", (payload) => {
-      if (currentRoomState && !currentRoomState.isPaid) {
-  if (currentRoomState.currentRound > 4) {
+   socket.on("game:roundStarted", (payload) => {
+
+  if (currentRoomState.currentRound > 4 && !currentRoomState.isPaid) {
     openPay();
     return;
   }
-}
       currentDrawerId = payload.roomState.activeDrawerId;
       roundText.innerText = payload.roomState.currentRound + " / " + payload.roomState.totalRounds;
       mobileRoundText.innerText = roundText.innerText;
