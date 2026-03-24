@@ -1959,8 +1959,15 @@ function unlockGame() {
         true,
         false
       );
+      if (currentRoomState && !currentRoomState.isPaid) {
+  if (currentRoomState.currentRound >= 4) {
+    setTimeout(() => {
+      openPay();
+    }, 1500);
+  }
+}
     });
-
+  
     socket.on("chat:message", (payload) => {
       appendChat(payload.playerName + ": " + payload.text, false, false);
     });
