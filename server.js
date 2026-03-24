@@ -850,33 +850,35 @@ io.on("connection", (socket) => {
       const leavingPlayer = getPlayerById(room, socket.id);
       if (!leavingPlayer) continue;
 
-      room.players = room.players.filter((player) => player.id !== socket.id);
+      setTimeout(() => {
+        const freshRoom = rooms.get(roomCode);
+        if (!freshRoom) return;
 
-      if (!room.players.length) {
-        clearRoundTimer(room);
-        rooms.delete(roomCode);
-        continue;
-      }
+        const stillSamePlayer = freshRoom.players.find((player) => player.id === socket.id);
+        if (!stillSamePlayer) return;
 
-      if (room.hostId === socket.id) {
-        room.hostId = room.players[0].id;
-        room.players[0].isHost = true;
-      }
+        freshRoom.players = freshRoom.players.filter((player) => player.id !== socket.id);
 
-      if (room.activeDrawerId === socket.id && ["choosing-drawer", "spinning", "playing"].includes(room.status)) {
-        clearRoundTimer(room);
-        systemMessage(roomCode, "🚨 الرسام خرج من الغرفة وتم تجاوز الجولة", "leave");
-        prepareNextRound(roomCode);
-        continue;
-      }
+        if (!freshRoom.players.length) {
+          clearRoundTimer(freshRoom);
+          rooms.delete(roomCode);
+          return;
+        }
 
-      systemMessage(roomCode, `🚪 ${leavingPlayer.name} طلع من الغرفة`, "leave");
-      emitRoomState(roomCode);
+        if (freshRoom.hostId === socket.id) {
+          freshRoom.hostId = freshRoom.players[0].id;
+          freshRoom.players[0].isHost = true;
+        }
+
+        if (freshRoom.activeDrawerId === socket.id && ["choosing-drawer", "spinning", "playing"].includes(freshRoom.status)) {
+          clearRoundTimer(freshRoom);
+          systemMessage(roomCode, "🚨 الرسام خرج من الغرفة وتم تجاوز الجولة", "leave");
+          prepareNextRound(roomCode);
+          return;
+        }
+
+        systemMessage(roomCode, `🚪 ${leavingPlayer.name} طلع من الغرفة`, "leave");
+        emitRoomState(roomCode);
+      }, 3000);
     }
   });
-});
-
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Ayam Al-Taybeen server listening on port ${PORT}`);
-});
