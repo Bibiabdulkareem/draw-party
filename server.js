@@ -596,6 +596,7 @@ io.on("connection", function (socket) {
       name: roomName,
       hostId: socket.id,
       status: "lobby",
+      isPaid: false,
       maxPlayers: maxPlayers,
       teamCount: teamCount,
       settings: settings,
